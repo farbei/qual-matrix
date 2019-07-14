@@ -113,8 +113,7 @@ def restrictCounter(mes_row,param):
         return False
     
     if re.search('RANGES',str(param.keys())):
-        counter_ranges = param['RANGES']
-        for counter_limits in counter_ranges.split(','):
+        for counter_limits in param['RANGES'].split(','):
             min_range, _, max_range  = counter_limits.partition('-')
             if float(min_range) < float(uda_value) < float(max_range):
                 return False 
