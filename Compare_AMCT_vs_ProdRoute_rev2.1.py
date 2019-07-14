@@ -13,8 +13,6 @@ import numpy as np
 from datetime import datetime as dt
 
 
-workdir = '\\\\isSHFS.intel.com\\isAnalysis$\\1274_UDBDATA\\Config\\TEL\\Iftach\\QualMatrix\\amct_tables\\'
-outputdir = '\\\\isSHFS.intel.com\\isAnalysis$\\1274_MAODATA\\Config\\DryEtch\\TEL\\Dashboard\\LineDownReports\\'
 
 
 def wildCards(df,columns):
