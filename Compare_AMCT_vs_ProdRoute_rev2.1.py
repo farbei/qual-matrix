@@ -13,8 +13,6 @@ import numpy as np
 from datetime import datetime as dt
 
 
-workdir = '\\\\isSHFS.intel.com\\isAnalysis$\\1274_UDBDATA\\Config\\TEL\\Iftach\\QualMatrix\\amct_tables\\'
-outputdir = '\\\\isSHFS.intel.com\\isAnalysis$\\1274_MAODATA\\Config\\DryEtch\\TEL\\Dashboard\\LineDownReports\\'
 
 
 def wildCards(df,columns):
@@ -117,8 +115,8 @@ def restrictCounter(mes_row,param):
     if re.search('RANGES',str(param.keys())):
         counter_ranges = param['RANGES']
         for counter_limits in counter_ranges.split(','):
-            counters = counter_limits.split('-')
-            if float(counters[0]) < float(uda_value) < float(counters[1]):
+            min_range, _, max_range  = counter_limits.partition('-')
+            if float(min_range) < float(uda_value) < float(max_range):
                 return False 
         return True
     else:
