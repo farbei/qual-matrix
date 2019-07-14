@@ -34,6 +34,23 @@ def restrictMoq(uda,param):
     return re.match(restrict,param)
 
 
+def restrictMoq2(mes):
+    if mes['main_moqr'] in ['nan','EMPTY']:
+        return ''
+    
+    comment = []
+    uncomment_string = re.sub(r'%[^%]*%','',mes['main_moqr'])
+    for field in uncomment_string.strip('/').split('/'):
+        if mes['operation'] == field:
+            comment.append('oper_rmoq')
+        if field.endswith('*'):
+            field = field.replace('*','.*').replace('?','.')
+            if re.match(field,mes['route']):
+                comment.append('route_rmoq')
+    
+    return ';'.join(comment)
+
+
 # Restrict L8 to run after limit operations
 def cannotFollow(mes_row,param):
     if 'CANNOT_FOLLOW_OPER' in param.keys():
@@ -306,6 +323,12 @@ for sub_ceid, amct in amct_dic.items():
                 closeRow(mes_table,row_index,comment='MoqOper') 
             if restrictMoq(mes_row['main_moqr'],mes_row['route']):
                 closeRow(mes_table,row_index,comment='MoqRoute')
+                
+#            restricted = restrictMoq2(mes_row) 
+#            if restricted:
+#                closeRow(mes_table,row_index,comment=restricted)
+            
+            
             if mes_row['main_availability'] == 'Down':
                 closeRow(mes_table,row_index,comment='MainDTP',state='Down')
             if mes_row['sub_availability'] == 'Down':
