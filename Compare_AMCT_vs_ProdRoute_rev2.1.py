@@ -52,10 +52,9 @@ def restrictMoq2(mes):
 # Restrict L8 to run after limit operations
 def cannotFollow(mes_row,param):
     if 'CANNOT_FOLLOW_OPER' in param.keys():
-        limit = param['CANNOT_FOLLOW_OPER']
         uda_value = mesUDA(mes_row,uda='L78GENERICUDA2')
         if uda_value != 'nan':
-            return uda_value in limit    
+            return uda_value in param['CANNOT_FOLLOW_OPER']    
     return False     
 
 
