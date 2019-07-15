@@ -77,7 +77,7 @@ def mesUDA(mes_row,uda):
        
 # Check for max cascading wafers allowed to run from operation     
 def maxCascade(mes_row,param):
-    if 'UDA' in str(param) and 'MAX_WAFER_COUNT' in str(param):
+    if 'UDA' in str(param) and 'MAX_WAFER_COUNT' in param.keys():
         uda_value = mesUDA(mes_row,param['UDA'])
         limit = param['MAX_WAFER_COUNT']
         if uda_value != 'nan' and str(limit) != 'nan':
