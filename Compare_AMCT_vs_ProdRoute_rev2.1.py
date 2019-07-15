@@ -228,8 +228,8 @@ def parameterList(parameter_list):
     param_dic = {}
     for param in parameter_list.split(';'):
         if '=' in param:
-            param = param.split('=')
-            param_dic[param[0]] = param[1]
+            key, _, value  = param.partition('=')
+            param_dic[key] = value
             
     return param_dic    
 
