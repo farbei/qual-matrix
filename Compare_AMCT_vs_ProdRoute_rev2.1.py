@@ -11,9 +11,9 @@ import re
 import pandas as pd 
 import numpy as np
 from datetime import datetime as dt
+from script_setting import dirs_address
 
-
-
+workdir, outputdir = dirs_address()
 
 def wildCards(df,columns):
     for col in columns:
@@ -149,14 +149,7 @@ def findAmctRow(mes,amct,join_by=['operation','product','route','entity']):
             if col == cols_match[-1]:
                 return amct.iloc[idx], True
     return [], False
-
-                               
-#mes_table.at[row_index,'ash_oper'] = ashOperation(f3_param)
-#def ashOperation(f3_param):
-#    if 'CH_ASH' in f3_param.keys():
-#        return f3_param['CH_ASH'].replace(',','#')
-#    else:
-#        '#'
+                              
 
 def layerClosed(mes_row,param):
     layer_col = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
