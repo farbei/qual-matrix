@@ -39,7 +39,7 @@ def restrictMoq2(mes):
     comment = []
     uncomment_string = re.sub(r'%[^%]*%','',mes['main_moqr'])
     for field in uncomment_string.strip('/').split('/'):
-        if mes['operation'] == field:
+        if re.match(r'\d+',field) and mes['operation'] == field:
             comment.append('oper_rmoq')
         if field.endswith('*'):
             field = field.replace('*','.*').replace('?','.')
@@ -52,10 +52,9 @@ def restrictMoq2(mes):
 # Restrict L8 to run after limit operations
 def cannotFollow(mes_row,param):
     if 'CANNOT_FOLLOW_OPER' in param.keys():
-        limit = param['CANNOT_FOLLOW_OPER']
         uda_value = mesUDA(mes_row,uda='L78GENERICUDA2')
         if uda_value != 'nan':
-            return uda_value in limit    
+            return uda_value in param['CANNOT_FOLLOW_OPER']    
     return False     
 
 
@@ -78,22 +77,19 @@ def mesUDA(mes_row,uda):
        
 # Check for max cascading wafers allowed to run from operation     
 def maxCascade(mes_row,param):
-    if 'UDA' in str(param) and 'MAX_WAFER_COUNT' in str(param):
+    if 'UDA' in param.keys() and 'MAX_WAFER_COUNT' in param.keys():
         uda_value = mesUDA(mes_row,param['UDA'])
-        limit = param['MAX_WAFER_COUNT']
-        if uda_value != 'nan' and str(limit) != 'nan':
-            return float(uda_value)>float(limit)
+        if uda_value != 'nan':
+            return int(uda_value) > int(param['MAX_WAFER_COUNT'])
     
     return False
 
-
 # Check if needed condition ran before operation
 def minCondition(mes_row,param):
-    if 'UDA' in str(param) and 'MIN_WAFER_COUNT' in str(param):
+    if 'UDA' in param.keys() and 'MIN_WAFER_COUNT' in param.keys():
         uda_value = mesUDA(mes_row,param['UDA'])
-        limit = param['MIN_WAFER_COUNT']
-        if uda_value != 'nan' and str(limit) != 'nan':
-            return float(uda_value)<float(limit)
+        if uda_value != 'nan':
+            return int(uda_value) < int(param['MIN_WAFER_COUNT'])
     
     return False
 
@@ -229,8 +225,8 @@ def parameterList(parameter_list):
     param_dic = {}
     for param in parameter_list.split(';'):
         if '=' in param:
-            param = param.split('=')
-            param_dic[param[0]] = param[1]
+            key, _, value  = param.partition('=')
+            param_dic[key] = value
             
     return param_dic    
 
