@@ -11,7 +11,7 @@ import re
 import pandas as pd 
 import numpy as np
 from datetime import datetime as dt
-from script_setting import dirs_address
+from script_setting import dirs_address, amct_classes
 
 workdir, outputdir = dirs_address()
 
@@ -197,14 +197,14 @@ def loadMEStable(ceid):
 
 
 def loadAMCTtables(models_list):
-    tables_names = ['F3_SETUP', 'TOOL_FILTER', 'LAYERGROUP', 'OPER_USAGE', 'CASCADE_OPER']
-    tables = dict(zip(['1272', '1274'], [{},{}]))
+    tables_names, process = amct_classes()
+    tables = dict(zip(process, [{},{}]))
     tables_size = []
     
     for idx, val in enumerate(models_list):
         if val != 'X':
             for fname in glob.glob('*'+val+'*.csv'):
-                process = re.search('(127.|$)', fname).group()
+                process = re.match('(\d{4}|$)', fname).group()
                 table = re.search('('+'|'.join(tables_names)+')[^\.]*|$', fname).group()
                 if table in tables_names:
                     data = pd.read_csv(fname) 
@@ -225,16 +225,17 @@ def parameterList(parameter_list):
 
 
 def printAMCT2ceid(amct_dic):
+    _, process = amct_classes()
     text = ''
     for sub_ceid, amct in amct_dic.items():
-        txt = dict(zip(['1272', '1274'], ['','']))
+        txt = dict(zip(process, ['','']))
         for model in amct:
             if model != 'X':
                 for fname in glob.glob('*'+model+'*.csv'):
-                    proc = re.search('127.', fname).group()
+                    proc = re.match('(\d{4}|$)', fname).group()
                     table = re.search('[^\.]*', fname).group().replace(model,'').replace(proc,'')
                     txt[proc] = txt[proc] + table.replace('__','') + '; '
-        text = text + '{0} {3}:\n1272: {1}\n1274: {2}\n'.format(sub_ceid, txt['1272'], txt['1274'],str(amct))            
+        text = text + '{0} {3}:\n{4}: {1}\n{5}: {2}\n'.format(sub_ceid, txt[process[0]], txt[process[1]],str(amct),process[0],process[1])            
         #print(text)
         txt_full = text + '\n\n'
         
