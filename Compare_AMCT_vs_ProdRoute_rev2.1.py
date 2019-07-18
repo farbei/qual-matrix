@@ -11,7 +11,8 @@ import re
 import pandas as pd 
 import numpy as np
 from datetime import datetime as dt
-from script_setting import dirs_address, amct_classes
+from script_setting import ceid2exclude, dirs_address, amct_classes
+
 
 workdir, outputdir = dirs_address()
 
@@ -245,7 +246,7 @@ def printAMCT2ceid(amct_dic):
 
 def loadSubCeidLegend():
     data = pd.read_csv(workdir+'sub_ceid_legend.csv') 
-    return data['module'].unique(), data
+    return ceid2exclude(), data['module'].unique(), data
 
 
 # In Case the 'Layer Allowed' attribute reflect to sub CEID
@@ -285,7 +286,7 @@ def summarizeOperState(df_post,df_summ):
 ################################################################
 os.chdir(workdir)   
 amct_dic = amct2moduleDic()
-ceid_needed_fix, ceid_legend = loadSubCeidLegend()
+exclude_ceid, ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
 
@@ -293,7 +294,7 @@ for sub_ceid, amct in amct_dic.items():
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
     
-    if mes_size == 0:
+    if mes_size == 0 or sub_ceid in exclude_ceid:
         continue
     
     drop_rows = []
