@@ -258,7 +258,7 @@ def loadSubCeidLegend():
     return data['module'].unique(), data
 
 
-# ONTxx 'Layer Allowed' attribute reflect to sub CEID
+# In Case the 'Layer Allowed' attribute reflect to sub CEID
 def fixSubCeid(mes_row,data): 
     legend = data[data['module']==mes_row['ceid']].sort_values(by=['order'])
 
