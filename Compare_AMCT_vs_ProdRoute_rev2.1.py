@@ -345,7 +345,7 @@ for sub_ceid, amct in amct_dic.items():
                     if layergroup_flag and layerClosed(mes_row,lg_row['PARAMETER_LIST']): 
                         closeRow(mes_table,row_index,comment='LayerGroup')
                        
-                # TAOcx ceids use OperUsage table at AMCT to open/close operation per mes counter.  
+                # when ceid use OperUsage table to open/close operation per mes counter.  
                 if 'OPER_USAGE' in ref_tables.keys():
                     ou_row, operusage_flag = findAmctRow(mes_row,ref_tables['OPER_USAGE'])
                     if operusage_flag:
