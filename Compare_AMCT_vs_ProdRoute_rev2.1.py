@@ -394,7 +394,6 @@ for sub_ceid, amct in amct_dic.items():
             df_sc = df_post[df_post['ceid']==sc]
             df_summ = summarizeOperState(df_sc,df_summ)
             df_sc.to_csv(outputdir+sc+'_rev4.csv', index=False)
-            print(sc)
     else:
         df_summ = summarizeOperState(df_post,df_summ)
 
