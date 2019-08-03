@@ -185,7 +185,12 @@ def amct2moduleDic():
 
 
 def loadMEStable(ceid):
-    data = pd.read_csv(sub_ceid+'_MESTABLE.csv') 
+    try:
+        data = pd.read_csv(sub_ceid+'_MESTABLE.csv')
+    except OSError as e:
+        print(e)
+        return [], 0
+        
     data['open'] = 'Up & Open'
     data['close_comment'] = '.'
     n_rows = len(data)
