@@ -178,8 +178,8 @@ def amctChamberState(entity,f3_param):
 
 
 def amct2moduleDic():
-    data = pd.read_csv(workdir+'config_file_DB.csv') 
-    keys = data['Sub_CEID']
+    data = pd.read_csv(workdir+'config_file_DB_rev2.csv') 
+    keys = data['Module']
     values = data[['AMCT_Table','AMCT_Table_72']].values.tolist()
     return dict(zip(keys, values))
 
@@ -304,8 +304,10 @@ for sub_ceid, amct in amct_dic.items():
         else:          
             if sub_ceid in ceid_needed_fix:
                 mes_table.at[row_index,'ceid'] = fixSubCeid(mes_row,ceid_legend)  
-            elif mes_row['ceid'] != sub_ceid:
-                mes_table.at[row_index,'ceid'] = sub_ceid
+            elif mes_row['ceid'] != mes_row['f28_ceid']:
+                mes_table.at[row_index,'ceid'] = mes_row['f28_ceid']
+#            elif mes_row['ceid'] != sub_ceid:
+#                mes_table.at[row_index,'ceid'] = sub_ceid
                 
             if restrictMoq(mes_row['main_moqr'],mes_row['operation']):
                 closeRow(mes_table,row_index,comment='MoqOper') 
@@ -375,22 +377,22 @@ for sub_ceid, amct in amct_dic.items():
     
     
     mes_table = mes_table.drop(drop_rows)
-    
-    
     need_columns = ['ceid','operation','oper_short_desc','product','route','LA24',
-                    'entity','open','close_comment','Inv','LA6','LA12'
-                    ]
+                    'entity','open','close_comment','Inv','LA6','LA12']    
     df_post = mes_table.filter(need_columns, axis=1)
     df_post.to_csv(outputdir+sub_ceid+'_rev4.csv', index=False)
-    print(sub_ceid)
-    
-    df_summ = summarizeOperState(df_post,df_summ)  
-        
-    if sub_ceid in ceid_needed_fix: # Split Table
-        for sc in list(mes_table['ceid'].unique()):
+
+    sub_ceid_list = list(mes_table['ceid'].unique()) 
+    print(sub_ceid,'  ',sub_ceid_list)
+    if len(sub_ceid_list) > 1: # Split Table
+        for sc in sub_ceid_list:
             df_sc = df_post[df_post['ceid']==sc]
+            df_summ = summarizeOperState(df_sc,df_summ)
             df_sc.to_csv(outputdir+sc+'_rev4.csv', index=False)
             print(sc)
+    else:
+        df_summ = summarizeOperState(df_post,df_summ)
+
     
     if not all(tables_size) or mes_size == 0:
         txt = sub_ceid + (': mes; ' if mes_size == 0 else ': ')
