@@ -294,7 +294,6 @@ amct_dic = amct2moduleDic()
 exclude_ceid, ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
-
 for sub_ceid, amct in amct_dic.items():
 
     tables, tables_size = loadAMCTtables(amct)
@@ -323,8 +322,7 @@ for sub_ceid, amct in amct_dic.items():
 #            restricted = restrictMoq2(mes_row) 
 #            if restricted:
 #                closeRow(mes_table,row_index,comment=restricted)
-            
-            
+                        
             if mes_row['main_availability'] == 'Down':
                 closeRow(mes_table,row_index,comment='MainDTP',state='Down')
             if mes_row['sub_availability'] == 'Down':
@@ -387,7 +385,6 @@ for sub_ceid, amct in amct_dic.items():
                     'entity','open','close_comment','Inv','LA6','LA12']    
     df_post = mes_table.filter(need_columns, axis=1)
 
-
     sub_ceid_list = list(mes_table['ceid'].unique()) 
     print(sub_ceid,'  ',sub_ceid_list)
     if len(sub_ceid_list) > 1: # Split Table
@@ -398,8 +395,7 @@ for sub_ceid, amct in amct_dic.items():
     else:
         df_summ = summarizeOperState(df_post,df_summ)
         df_post.to_csv(outputdir+sub_ceid+'_rev4.csv', index=False)
-
-    
+ 
     if not all(tables_size) or mes_size == 0:
         txt = sub_ceid + (': mes; ' if mes_size == 0 else ': ')
         for proc, nested_dic in tables.items(): 
