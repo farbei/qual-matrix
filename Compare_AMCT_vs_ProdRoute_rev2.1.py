@@ -296,6 +296,7 @@ df_summ = pd.DataFrame({'new' : []})
 
 
 for sub_ceid, amct in amct_dic.items():
+
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
     
@@ -385,7 +386,7 @@ for sub_ceid, amct in amct_dic.items():
     need_columns = ['ceid','operation','oper_short_desc','product','route','LA24',
                     'entity','open','close_comment','Inv','LA6','LA12']    
     df_post = mes_table.filter(need_columns, axis=1)
-    df_post.to_csv(outputdir+sub_ceid+'_rev4.csv', index=False)
+
 
     sub_ceid_list = list(mes_table['ceid'].unique()) 
     print(sub_ceid,'  ',sub_ceid_list)
@@ -396,6 +397,7 @@ for sub_ceid, amct in amct_dic.items():
             df_sc.to_csv(outputdir+sc+'_rev4.csv', index=False)
     else:
         df_summ = summarizeOperState(df_post,df_summ)
+        df_post.to_csv(outputdir+sub_ceid+'_rev4.csv', index=False)
 
     
     if not all(tables_size) or mes_size == 0:
