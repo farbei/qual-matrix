@@ -144,7 +144,6 @@ def findAmctRow(mes,amct,join_by=['operation','product','route','entity']):
     cols_match = [x for x in join_by if x.upper() in amct.columns]
     for idx in amct.index:
         for col in cols_match:
-
             if not re.match(amct[col.upper()][idx],mes[col]):
                 break
             if col == cols_match[-1]:
@@ -379,10 +378,11 @@ for sub_ceid, amct in amct_dic.items():
                 drop_rows.append(row_index)
     
     
-    mes_table = mes_table.drop(drop_rows)
+    
     need_columns = ['ceid','operation','oper_short_desc','product','route','LA24',
-                    'entity','open','close_comment','Inv','LA6','LA12']    
-    df_post = mes_table.filter(need_columns, axis=1)
+                    'entity','open','close_comment','Inv','LA6','LA12']   
+    df_post = mes_table[need_columns].drop(index=drop_rows)
+    #df_post = df_post.filter(need_columns, axis=1)
 
     sub_ceid_list = list(mes_table['ceid'].unique()) 
     print(sub_ceid,'  ',sub_ceid_list)
