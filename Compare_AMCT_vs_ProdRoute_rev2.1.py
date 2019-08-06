@@ -251,17 +251,16 @@ def printAMCT2ceid(amct_dic):
 
 def loadSubCeidLegend():
     data = pd.read_csv(workdir+'sub_ceid_legend.csv') 
+    data = data.sort_values(by=['module','order'], ascending=True)
     return ceid2exclude(), data['module'].unique(), data
 
 
 # In Case the 'Layer Allowed' attribute reflect to sub CEID
-def fixSubCeid(mes_row,data): 
-    legend = data[data['module']==mes_row['ceid']].sort_values(by=['order'])
-
-    for index, row in legend.iterrows():
-        if re.match(str(row['value']),str(mes_row[row['by']])):
+def fixSubCeid(mes, sub_ceid, data): 
+    for index, row in data.loc[data['module']==sub_ceid].iterrows():
+        if mes[row['by']] == row['value']:
             return row['new_ceid']
-    return mes_row['ceid']
+    return mes['ceid']
         
 
 def isAshersDTP(mes_table,mes_row,ashers):
@@ -295,7 +294,7 @@ exclude_ceid, ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
 for sub_ceid, amct in amct_dic.items():
-
+    
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
     
@@ -308,7 +307,7 @@ for sub_ceid, amct in amct_dic.items():
             drop_rows.append(row_index)
         else:          
             if sub_ceid in ceid_needed_fix:
-                mes_table.at[row_index,'ceid'] = fixSubCeid(mes_row,ceid_legend)  
+                mes_table.at[row_index,'ceid'] = fixSubCeid(mes_row, sub_ceid, ceid_legend)  
             elif mes_row['ceid'] != mes_row['f28_ceid']:
                 mes_table.at[row_index,'ceid'] = mes_row['f28_ceid']
 #            elif mes_row['ceid'] != sub_ceid:
