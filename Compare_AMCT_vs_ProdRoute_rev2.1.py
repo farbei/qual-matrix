@@ -241,8 +241,8 @@ def printAMCT2ceid(amct_dic):
                     proc = re.match('(\d{4}|$)', fname).group()
                     table = re.search('[^\.]*', fname).group().replace(model,'').replace(proc,'')
                     txt[proc] = txt[proc] + table.replace('__','') + '; '
-        text = text + '{0} {3}:\n{4}: {1}\n{5}: {2}\n'.format(sub_ceid, txt[process[0]], txt[process[1]],str(amct),process[0],process[1])            
-        #print(text)
+        text = text + '{0} {3}:\n{4}: {1}\n{5}: {2}\n'.format(sub_ceid, 
+                       txt[process[0]], txt[process[1]],str(amct),process[0],process[1])
         txt_full = text + '\n\n'
         
     with open('amct2ceidList.txt', 'w') as myfile: 
@@ -273,7 +273,7 @@ def isAshersDTP(mes_table,mes_row,ashers):
         
         if not asher_row.empty and asher_row['open'].item() == 'Up & Open':
             return False
-    return True
+    return True 
 
 
 def summarizeOperState(df_post,df_summ):
