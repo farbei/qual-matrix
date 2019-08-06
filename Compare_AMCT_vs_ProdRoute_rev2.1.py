@@ -11,7 +11,7 @@ import re
 import pandas as pd 
 import numpy as np
 from datetime import datetime as dt
-from script_setting import ceid2exclude, dirs_address, amct_classes
+from script_setting import dirs_address, amct_classes
 
 
 workdir, outputdir = dirs_address()
@@ -252,7 +252,7 @@ def printAMCT2ceid(amct_dic):
 def loadSubCeidLegend():
     data = pd.read_csv(workdir+'sub_ceid_legend.csv') 
     data = data.sort_values(by=['module','order'], ascending=True)
-    return ceid2exclude(), data['module'].unique(), data
+    return data['module'].unique(), data
 
 
 # In Case the 'Layer Allowed' attribute reflect to sub CEID
@@ -277,7 +277,7 @@ def isAshersDTP(mes_table,mes_row,ashers):
 
 def summarizeOperState(df_post,df_summ):
     df = df_post.drop(['close_comment'], axis=1)
-    df['ceid'] =sub_ceid
+    df['ceid'] = sub_ceid
     col_list = df.columns.tolist()
     col_list.remove('entity')
     
@@ -290,7 +290,7 @@ def summarizeOperState(df_post,df_summ):
 ################################################################
 os.chdir(workdir)   
 amct_dic = amct2moduleDic()
-exclude_ceid, ceid_needed_fix, ceid_legend = loadSubCeidLegend()
+ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
 for sub_ceid, amct in amct_dic.items():
@@ -298,7 +298,7 @@ for sub_ceid, amct in amct_dic.items():
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
     
-    if mes_size == 0 or sub_ceid in exclude_ceid:
+    if mes_size == 0:
         continue
     
     drop_rows = []
