@@ -156,10 +156,10 @@ def findAmctRow(mes,amct,join_by=['operation','product','route','entity']):
 
 def layerClosed(mes_row,param):
     layer_col = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
-    if layer_col in mes_table.columns and mes_row[layer_col] == 'DOWN':
+    if layer_col in mes_row.index and mes_row[layer_col] == 'DOWN':
         return True
     else:
-        False
+        return False
         
 def amctChamberState(entity,f3_param):
     ch = str(entity[-1])
