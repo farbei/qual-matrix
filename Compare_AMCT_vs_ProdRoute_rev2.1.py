@@ -79,7 +79,7 @@ def maxCascade(mes_row,param):
     if 'UDA' in param.keys() and 'MAX_WAFER_COUNT' in param.keys():
         uda_value = mesUDA(mes_row,param['UDA'])
         if uda_value != 'nan':
-            return int(uda_value) > int(param['MAX_WAFER_COUNT'])
+            return float(uda_value) > float(param['MAX_WAFER_COUNT'])
     
     return False
 
@@ -88,7 +88,7 @@ def minCondition(mes_row,param):
     if 'UDA' in param.keys() and 'MIN_WAFER_COUNT' in param.keys():
         uda_value = mesUDA(mes_row,param['UDA'])
         if uda_value != 'nan':
-            return int(uda_value) < int(param['MIN_WAFER_COUNT'])
+            return float(uda_value) < float(param['MIN_WAFER_COUNT'])
     
     return False
 
