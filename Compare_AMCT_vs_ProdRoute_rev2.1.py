@@ -54,8 +54,8 @@ def restrictMoq2(mes):
 def cannotFollow(mes_row,param):
     if 'CANNOT_FOLLOW_OPER' in param.keys():
         uda_value = mesUDA(mes_row,uda='L78GENERICUDA2')
-        if uda_value != 'nan':
-            return uda_value in param['CANNOT_FOLLOW_OPER']    
+        #if uda_value != 'nan':
+        return uda_value in param['CANNOT_FOLLOW_OPER']    
     return False     
 
 
@@ -383,18 +383,14 @@ for sub_ceid, amct in amct_dic.items():
                     'entity','open','close_comment','Inv','LA6','LA12']   
     df_post = mes_table[need_columns].drop(index=drop_rows)
 
-    sub_ceid_list = list(df_post['ceid'].unique()) 
-    if len(sub_ceid_list) > 0: # Split Table
-        print(sub_ceid,'  ',sub_ceid_list,'  ', len(df_post))
-        for sc in sub_ceid_list:
-            df_sc = df_post[df_post['ceid']==sc]
-            df_summ = summarizeOperState(df_sc,df_summ)
-            df_sc.to_csv(outputdir+sc+'_rev4.csv', index=False)
-    else:
-        print('error:',sub_ceid)
-#        df_summ = summarizeOperState(df_post,df_summ)
-#        df_post.to_csv(outputdir+sub_ceid+'_rev4.csv', index=False)
- 
+    sub_ceid_list = list(df_post['ceid'].unique())
+    print(sub_ceid,'  ',sub_ceid_list,'  ', len(df_post))
+    for sc in sub_ceid_list:
+        df_sc = df_post[df_post['ceid']==sc]
+        df_summ = summarizeOperState(df_sc,df_summ)
+        df_sc.to_csv(outputdir+sc+'_rev4.csv', index=False)
+    
+    
     if not all(tables_size) or mes_size == 0:
         txt = sub_ceid + (': mes; ' if mes_size == 0 else ': ')
         for proc, nested_dic in tables.items(): 
