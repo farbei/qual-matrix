@@ -378,26 +378,21 @@ for sub_ceid, amct in amct_dic.items():
                 drop_rows.append(row_index)
     
     
-
     need_columns = ['ceid','operation','oper_short_desc','product','route','LA24',
                     'entity','open','close_comment','Inv','LA6','LA12']   
     df_post = mes_table[need_columns].drop(index=drop_rows)
 
-    if len(df_post) == 0:
-        print('error:',sub_ceid)
-        continue
-    #df_post = df_post.filter(need_columns, axis=1)
-
     sub_ceid_list = list(df_post['ceid'].unique()) 
-    print(sub_ceid,'  ',sub_ceid_list,'  ', len(df_post))
-    if len(sub_ceid_list) > 1: # Split Table
+    if len(sub_ceid_list) > 0: # Split Table
+        print(sub_ceid,'  ',sub_ceid_list,'  ', len(df_post))
         for sc in sub_ceid_list:
             df_sc = df_post[df_post['ceid']==sc]
             df_summ = summarizeOperState(df_sc,df_summ)
             df_sc.to_csv(outputdir+sc+'_rev4.csv', index=False)
     else:
-        df_summ = summarizeOperState(df_post,df_summ)
-        df_post.to_csv(outputdir+sub_ceid+'_rev4.csv', index=False)
+        print('error:',sub_ceid)
+#        df_summ = summarizeOperState(df_post,df_summ)
+#        df_post.to_csv(outputdir+sub_ceid+'_rev4.csv', index=False)
  
     if not all(tables_size) or mes_size == 0:
         txt = sub_ceid + (': mes; ' if mes_size == 0 else ': ')
