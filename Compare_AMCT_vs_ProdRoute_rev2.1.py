@@ -61,19 +61,17 @@ def cannotFollow(mes_row,param):
 
 # Automation L8 UDA 
 def mesUDA(mes_row,uda):
-    if isinstance(uda,list):
-        attr_dic = dict.fromkeys(uda)
-        for key in attr_dic:
-            attr_name = re.search('([^\']*'+key+'[^\']*|$)',str(mes_row.index)).group()
-            if attr_name != '':
-                attr_dic[key] = str(int(mes_row[attr_name]))
-        return attr_dic
-    else:     
-        attr_name = re.search('([^\']*'+uda+'[^\']*|$)',str(mes_row.index)).group()
-        if attr_name != '':
-            return str(int(mes_row[attr_name]))
-        else:
-            return 'nan'
+    def uda_value(val,attrs):
+        attr = re.search('([^\']*'+val+'[^\']*|$)',str(attrs)).group()
+        return str(mes_row[attr]) if attr else 'nan'
+    
+    if isinstance(uda,str):
+        return uda_value(uda,mes_row.index)
+    else:
+        attr_dic = {}
+        for key in uda:
+            attr_dic[key] = uda_value(key,mes_row.index)
+        return attr_dic 
 
        
 # Check for max cascading wafers allowed to run from operation     
