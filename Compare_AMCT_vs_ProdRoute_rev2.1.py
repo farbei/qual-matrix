@@ -132,12 +132,15 @@ def closeRow(df,i,comment,state='Close'):
     elif state == 'Down':
         df.at[i,'open'] = df.at[i,'open'].replace('Up','Down')
     else:
-        df.at[i,'open'] = df.at[i,'open'] + ' & ' + state
+        df.at[i,'open'] = df.at[i,'open']+' & '+state
         
-    if df.at[i,'close_comment'] == '.':
-        df.at[i,'close_comment'] = comment   
-    else:
-        df.at[i,'close_comment'] = df.at[i,'close_comment'] + ';' + comment   
+    temp = df.at[i,'close_comment']    
+    df.at[i,'close_comment'] = comment if not temp else temp+';'+comment 
+    
+#    if df.at[i,'close_comment'] == '.':
+#        df.at[i,'close_comment'] = comment   
+#    else:
+#        df.at[i,'close_comment'] = df.at[i,'close_comment'] + ';' + comment   
 
 
 def findAmctRow(mes,amct,join_by=['operation','product','route','entity']):
@@ -191,7 +194,7 @@ def loadMEStable(ceid):
         return [], 0
         
     data['open'] = 'Up & Open'
-    data['close_comment'] = '.'
+    data['close_comment'] = ''
     n_rows = len(data)
     if n_rows > 0:
         col2str = ['operation','oper_process','product','route','main_moqr']
