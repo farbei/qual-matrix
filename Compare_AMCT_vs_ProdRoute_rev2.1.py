@@ -253,8 +253,8 @@ def isAshersDTP(mes_table,mes_row,ashers):
 
 
 def summarizeOperState(df,df_summ):
-    cols = [c for c in df.columns if c not in ['entity','close_comment','open']]
-    table = df.pivot_table(values='entity', index=cols, columns=['open'],
+    idx = [c for c in df.columns if c not in ['entity','close_comment','open']]
+    table = df.pivot_table(values='entity', index=idx, columns=['open'],
                            aggfunc={'entity': 'count'}).reset_index()
     
     if 'Up & Open' in table.columns:
@@ -262,9 +262,10 @@ def summarizeOperState(df,df_summ):
     else:
         table['entity_'] = 0
         
-    grouped = table.groupby(['ceid','operation','oper_short_desc'], as_index=False)
-    df_out = grouped.agg( {'entity_':['min','max'],
-             'Inv':'sum', 'LA6':'sum', 'LA12':'sum', 'LA24':'sum'})
+    grouped = table.groupby(['ceid','operation','oper_short_desc']
+                            , as_index=False)
+    df_out = grouped.agg({'entity_':['min','max'],
+                          'Inv':'sum','LA6':'sum','LA12':'sum','LA24':'sum'})
     df_out.columns = ["".join(x) for x in df_out.columns.ravel()]
 
     return df_out if df_summ.empty else pd.concat([df_summ,df_out])
