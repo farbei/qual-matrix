@@ -252,16 +252,21 @@ def isAshersDTP(mes_table,mes_row,ashers):
     return True 
 
 
-def summarizeOperState(df_post,df_summ):
-    df = df_post.drop(['close_comment'], axis=1)
-    #df['ceid'] = sub_ceid
-    col_list = df.columns.tolist()
-    col_list.remove('entity')
+def summarizeOperState(df,df_summ):
+    cols = [c for c in df.columns if c not in ['entity','close_comment','open']]
+    table = df.pivot_table(values='entity', index=cols, columns=['open'],
+                           aggfunc={'entity': 'count'}).reset_index()
     
-    pd_count = df.groupby(col_list).agg({'entity':'count'}).reset_index() 
-    grouped = pd_count[pd_count['open']=='Up & Open'].groupby(['ceid','operation','oper_short_desc'])   
-    df_out = grouped.agg({'entity':['min','max'],'Inv':'sum','LA6':'sum','LA12':'sum','LA24':'sum'}).reset_index() 
-    df_out.columns = ['ceid','operation','oper_short_desc','entity_min','entity_max','Inv','LA6','LA12','LA24']
+    if 'Up & Open' in table.columns:
+        table.rename(columns={'Up & Open': 'entity_'})
+    else:
+        table['entity_'] = 0
+        
+    grouped = table.groupby(['ceid','operation','oper_short_desc'], as_index=False)
+    df_out = grouped.agg( {'entity_':['min','max'],
+             'Inv':'sum', 'LA6':'sum', 'LA12':'sum', 'LA24':'sum'})
+    df_out.columns = ["".join(x) for x in df_out.columns.ravel()]
+
     return df_out if df_summ.empty else pd.concat([df_summ,df_out])
 
 ################################################################
