@@ -136,12 +136,7 @@ def closeRow(df,i,comment,state='Close'):
     #temp = df.at[i,'close_comment']    
     # = comment if not temp else temp+';'+comment 
     
-#    if df.at[i,'close_comment'] == '.':
-#        df.at[i,'close_comment'] = comment   
-#    else:
-#        df.at[i,'close_comment'] = df.at[i,'close_comment'] + ';' + comment   
-
-
+  
 def findAmctRow(mes,amct,join_by=['operation','product','route','entity']):
     cols_match = [x for x in join_by if x.upper() in amct.columns]
     for idx in amct.index:
@@ -292,8 +287,6 @@ for sub_ceid, amct in amct_dic.items():
                 mes_table.at[row_index,'ceid'] = fixSubCeid(mes_row, sub_ceid, ceid_legend)  
             elif mes_row['ceid'] != mes_row['f28_ceid']:
                 mes_table.at[row_index,'ceid'] = mes_row['f28_ceid']
-#            elif mes_row['ceid'] != sub_ceid:
-#                mes_table.at[row_index,'ceid'] = sub_ceid
                 
             if restrictMoq(mes_row['main_moqr'],mes_row['operation']):
                 closeRow(mes_table,row_index,comment='MoqOper') 
