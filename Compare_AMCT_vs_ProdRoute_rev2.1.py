@@ -156,19 +156,19 @@ def layerClosed(mes_row,param):
         return False
         
 def amctChamberState(entity,f3_param):
-    ch = str(entity[-1])
-    if 'CH_POR' in f3_param.keys() and re.search(ch,f3_param['CH_POR']):
-        etcher = 'por' 
-    elif 'CH_ASH' in f3_param.keys() and re.search(ch,f3_param['CH_ASH']):
-        etcher = 'ash' 
-    elif 'CH_SIF' in f3_param.keys() and re.search(ch,f3_param['CH_SIF']):
-        etcher = 'sif' 
-    elif 'RECIPE_CHAMBER'+ch in f3_param.keys():
-        etcher = 'sif' if re.search('SIF',f3_param['RECIPE_CHAMBER'+ch]) else 'por'
-    else:
-        etcher = 'noAmctChamberRef'
-    # Indicator for ash operation
-    ashers = f3_param['CH_ASH'] if 'CH_ASH' in f3_param.keys() and int(ch) < 7 else 'nan'
+    etcher = 'noAmctChamberRef'
+    ashers = 'nan'
+    
+    for par in ['CH_POR','CH_EX','CH_ASH','CH_SIF']:
+        if par in f3_param.keys() and re.search(entity[-1],f3_param[par]):
+            if 'CH_ASH' in f3_param.keys() and int(entity[-1]) < 7:
+                ashers = f3_param['CH_ASH']
+            return par, ashers 
+     
+    for par in ['RECIPE_NAME','RECIPE_CHAMBER'+entity[-1]]:
+        if par in f3_param.keys():
+            etcher = 'CH_SIF' if re.search('SIF',f3_param[par]) else 'CH_POR'
+            return etcher, ashers 
 
     return etcher, ashers
 
@@ -258,7 +258,7 @@ def summarizeOperState(df,df_summ):
                            aggfunc={'entity': 'count'}).reset_index()
     
     if 'Up & Open' in table.columns:
-        table.rename(columns={'Up & Open': 'entity_'})
+        table = table.rename(columns={'Up & Open': 'entity_'})
     else:
         table['entity_'] = 0
         
@@ -313,7 +313,7 @@ for sub_ceid, amct in amct_dic.items():
             if found_amct_row_flag:
                 f3_param = parameterList(f3_row['PARAMETER_LIST'])                
                 chamber_state, ashers = amctChamberState(mes_row['entity'],f3_param)
-                if chamber_state not in ['por','ash']:
+                if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
                     closeRow(mes_table,row_index,comment=chamber_state)  
                 if ashers != 'nan' and isAshersDTP(mes_table,mes_row,ashers):
                     closeRow(mes_table,row_index,comment='NoAshers',state='No Ashers')  
