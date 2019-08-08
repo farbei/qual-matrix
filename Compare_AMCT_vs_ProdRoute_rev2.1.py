@@ -254,7 +254,7 @@ def isAshersDTP(mes_table,mes_row,ashers):
 
 def summarizeOperState(df_post,df_summ):
     df = df_post.drop(['close_comment'], axis=1)
-    df['ceid'] = sub_ceid
+    #df['ceid'] = sub_ceid
     col_list = df.columns.tolist()
     col_list.remove('entity')
     
