@@ -149,8 +149,8 @@ def findAmctRow(mes,amct,join_by=['operation','product','route','entity']):
                               
 
 def layerClosed(mes_row,param):
-    layer_col = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
-    if layer_col in mes_row.index and mes_row[layer_col] == 'DOWN':
+    layer = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
+    if layer in mes_row.index and mes_row[layer] == 'DOWN':
         return True
     else:
         return False
