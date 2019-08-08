@@ -131,9 +131,10 @@ def closeRow(df,i,comment,state='Close'):
         df.at[i,'open'] = df.at[i,'open'].replace('Up','Down')
     else:
         df.at[i,'open'] = df.at[i,'open']+' & '+state
-        
-    temp = df.at[i,'close_comment']    
-    df.at[i,'close_comment'] = comment if not temp else temp+';'+comment 
+    
+    df.at[i,'close_comment'] += comment+';'
+    #temp = df.at[i,'close_comment']    
+    # = comment if not temp else temp+';'+comment 
     
 #    if df.at[i,'close_comment'] == '.':
 #        df.at[i,'close_comment'] = comment   
@@ -229,25 +230,6 @@ def parameterList(parameter_list):
             
     return param_dic    
 
-
-def printAMCT2ceid(amct_dic):
-    _, process = amct_classes()
-    text = ''
-    for sub_ceid, amct in amct_dic.items():
-        txt = dict(zip(process, ['','']))
-        for model in amct:
-            if model != 'X':
-                for fname in glob.glob('*'+model+'*.csv'):
-                    proc = re.match('(\d{4}|$)', fname).group()
-                    table = re.search('[^\.]*', fname).group().replace(model,'').replace(proc,'')
-                    txt[proc] = txt[proc] + table.replace('__','') + '; '
-        text = text + '{0} {3}:\n{4}: {1}\n{5}: {2}\n'.format(sub_ceid, 
-                       txt[process[0]], txt[process[1]],str(amct),process[0],process[1])
-        txt_full = text + '\n\n'
-        
-    with open('amct2ceidList.txt', 'w') as myfile: 
-            myfile.write(txt_full) 
-                    
 
 def loadSubCeidLegend():
     data = pd.read_csv(workdir+'sub_ceid_legend.csv') 
