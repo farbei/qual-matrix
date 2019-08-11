@@ -159,8 +159,8 @@ def amctChamberState(entity,f3_param):
     etcher, ashers = 'noAmctChamberRef', 'nan'
     
     for par in ['CH_POR','CH_EX','CH_ASH','CH_SIF']:
-        if par in f3_param.keys() and re.search(entity[-1],f3_param[par]):
-            if 'CH_ASH' in f3_param.keys() and int(entity[-1]) < 7:
+        if par in f3_param.keys() and entity[-1] in f3_param[par]:
+            if 'CH_ASH' in f3_param.keys() and entity[-1] < '7':
                 ashers = f3_param['CH_ASH']
             return par, ashers 
      
