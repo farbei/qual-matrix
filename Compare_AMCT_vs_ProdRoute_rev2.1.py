@@ -241,7 +241,7 @@ def isAshersDTP(mes_table,mes_row,ashers):
                                   (mes_table['route'] == mes_row['route']) &
                                   (mes_table['entity'] == mes_row['entity'][:-1]+asher) ]
         
-        if not asher_row.empty and asher_row['open'].item() == 'Up & Open':
+        if not asher_row.empty and asher_row['open'].item() == 'Up&Open':
             return False
     return True 
 
@@ -251,8 +251,8 @@ def summarizeOperState(df,df_summ):
     table = df.pivot_table(values='entity', index=idx, columns=['open'],
                            aggfunc={'entity': 'count'}).reset_index()
     
-    if 'Up & Open' in table.columns:
-        table = table.rename(columns={'Up & Open': 'entity_'})
+    if 'Up&Open' in table.columns:
+        table = table.rename(columns={'Up&Open': 'entity_'})
     else:
         table['entity_'] = 0
         
