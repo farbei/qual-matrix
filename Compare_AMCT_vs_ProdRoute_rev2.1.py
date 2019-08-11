@@ -156,8 +156,7 @@ def layerClosed(mes_row,param):
         return False
         
 def amctChamberState(entity,f3_param):
-    etcher = 'noAmctChamberRef'
-    ashers = 'nan'
+    etcher, ashers = 'noAmctChamberRef', 'nan'
     
     for par in ['CH_POR','CH_EX','CH_ASH','CH_SIF']:
         if par in f3_param.keys() and re.search(entity[-1],f3_param[par]):
