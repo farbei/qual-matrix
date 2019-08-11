@@ -166,7 +166,7 @@ def amctChamberState(entity,f3_param):
             return par, ashers 
      
     for par in ['RECIPE_NAME','RECIPE_CHAMBER'+entity[-1]]:
-        if par in f3_param.keys():
+        if par in f3_param.keys() and f3_param[par]:
             etcher = 'CH_SIF' if re.search('SIF',f3_param[par]) else 'CH_POR'
             return etcher, ashers 
 
@@ -277,7 +277,9 @@ ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
 for sub_ceid, amct in amct_dic.items():
-
+    if sub_ceid != 'GNTde':
+        continue
+    
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
     
@@ -294,14 +296,14 @@ for sub_ceid, amct in amct_dic.items():
             elif mes_row['ceid'] != mes_row['f28_ceid']:
                 mes_table.at[row_index,'ceid'] = mes_row['f28_ceid']
                 
-            if restrictMoq(mes_row['main_moqr'],mes_row['operation']):
-                closeRow(mes_table,row_index,comment='MoqOper') 
-            if restrictMoq(mes_row['main_moqr'],mes_row['route']):
-                closeRow(mes_table,row_index,comment='MoqRoute')
+#            if restrictMoq(mes_row['main_moqr'],mes_row['operation']):
+#                closeRow(mes_table,row_index,comment='MoqOper') 
+#            if restrictMoq(mes_row['main_moqr'],mes_row['route']):
+#                closeRow(mes_table,row_index,comment='MoqRoute')
                 
-#            restricted = restrictMoq2(mes_row) 
-#            if restricted:
-#                closeRow(mes_table,row_index,comment=restricted)
+            restricted = restrictMoq2(mes_row) 
+            if restricted:
+                closeRow(mes_table,row_index,comment=restricted)
                         
             if mes_row['main_availability'] == 'Down':
                 closeRow(mes_table,row_index,comment='MainDTP',state='Down')
