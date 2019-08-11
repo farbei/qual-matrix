@@ -124,18 +124,13 @@ def restrictCounter(mes_row,param):
         return False
 
 
-def closeRow(df,i,comment,state='Close'):
-    if state == 'Close':
-        df.at[i,'open'] = df.at[i,'open'].replace('Open','Close')
-    elif state == 'Down':
-        df.at[i,'open'] = df.at[i,'open'].replace('Up','Down')
+def closeRow(df,i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
+    if state in dic.keys():
+        df.at[i,'open'] = df.at[i,'open'].replace(dic[state],state)
     else:
-        df.at[i,'open'] = df.at[i,'open']+' & '+state
-    
+        df.at[i,'open'] += '&'+state    
     df.at[i,'close_comment'] += comment+';'
-    #temp = df.at[i,'close_comment']    
-    # = comment if not temp else temp+';'+comment 
-    
+
   
 def findAmctRow(mes,amct,join_by=['operation','product','route','entity']):
     cols_match = [x for x in join_by if x.upper() in amct.columns]
@@ -186,7 +181,7 @@ def loadMEStable(ceid):
         print(e)
         return [], 0
         
-    data['open'] = 'Up & Open'
+    data['open'] = 'Up&Open'
     data['close_comment'] = ''
     n_rows = len(data)
     if n_rows > 0:
@@ -276,7 +271,7 @@ ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
 for sub_ceid, amct in amct_dic.items():
-    
+
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
     
