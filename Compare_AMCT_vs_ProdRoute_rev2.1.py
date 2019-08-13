@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime as dt
 from script_setting import dirs_address, amct_classes
-import time
+#import time
 
 workdir, outputdir = dirs_address()
 
@@ -173,8 +173,8 @@ def loadMEStable(ceid):
         print(e)
         return [], 0
         
-    data['open'] = 'Up&Open'
-    data['close_comment'] = ''
+    data['open'], data['close_comment'] = 'Up&Open', ''
+     
     n_rows = len(data)
     if n_rows > 0:
         col2str = ['operation','oper_process','product','route','main_moqr']
@@ -202,17 +202,17 @@ def loadAMCTtables(models_list):
     return tables, tables_size
         
 
-def parameterList(parameter_list):
-    param_dic = {}
-    for param in parameter_list.split(';'):
-        if '=' in param:
-            key, _, value  = param.partition('=')
-            param_dic[key] = value
-            
-    return param_dic    
+#def parameterList(parameter_list):
+#    param_dic = {}
+#    for param in parameter_list.split(';'):
+#        if '=' in param:
+#            key, _, value  = param.partition('=')
+#            param_dic[key] = value
+#            
+#    return param_dic    
 
 
-def parameterList2(param):
+def parameterList(param):
     return dict(tuple(p.split('=',1)) for p in param.split(';') if '=' in p)
 
 
