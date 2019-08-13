@@ -68,10 +68,11 @@ def mesUDA(mes_row,uda):
     if isinstance(uda,str):
         return uda_value(uda,mes_row.index)
     else:
-        attr_dic = {}
-        for key in uda:
-            attr_dic[key] = uda_value(key,mes_row.index)
-        return attr_dic 
+        return {uda_value(key,mes_row.index) for key in uda}
+#        attr_dic = {}
+#        for key in uda:
+#            attr_dic[key] = uda_value(key,mes_row.index)
+#        return attr_dic 
 
        
 # Check for max cascading wafers allowed to run from operation     
@@ -80,7 +81,6 @@ def maxCascade(mes_row,param):
         uda_value = mesUDA(mes_row,param['UDA'])
         if uda_value != 'nan':
             return float(uda_value) > float(param['MAX_WAFER_COUNT'])
-    
     return False
 
 # Check if needed condition ran before operation
@@ -89,7 +89,6 @@ def minCondition(mes_row,param):
         uda_value = mesUDA(mes_row,param['UDA'])
         if uda_value != 'nan':
             return float(uda_value) < float(param['MIN_WAFER_COUNT'])
-    
     return False
 
 
@@ -145,10 +144,8 @@ def findAmctRow(mes,amct,join_by=['operation','product','route','entity']):
 
 def layerClosed(mes_row,param):
     layer = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
-    if layer in mes_row.index and mes_row[layer] == 'DOWN':
-        return True
-    else:
-        return False
+    return (layer in mes_row.index and mes_row[layer] == 'DOWN')
+
         
 def amctChamberState(entity,f3_param):
     etcher, ashers = 'noAmctChamberRef', 'nan'
@@ -255,7 +252,6 @@ def summarizeOperState(df,df_summ):
         table = table.rename(columns={'Up&Open': 'entity_'})
     else:
         table['entity_'] = 0
-        
     grouped = table.groupby(['ceid','operation','oper_short_desc']
                             , as_index=False)
     df_out = grouped.agg({'entity_':['min','max'],
@@ -271,7 +267,8 @@ ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
 for sub_ceid, amct in amct_dic.items():
-
+    if sub_ceid != 'GTXde':
+        continue
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
     
