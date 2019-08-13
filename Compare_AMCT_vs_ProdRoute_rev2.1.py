@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime as dt
 from script_setting import dirs_address, amct_classes
-
+import time
 
 workdir, outputdir = dirs_address()
 
@@ -211,14 +211,10 @@ def parameterList(parameter_list):
             
     return param_dic    
 
+
 def parameterList2(param):
-    return {p[0]:p[2] for p in param.split(';') if '=' in p}
-##    for param in param.split(';'):
-#        if '=' in param:
-#            key, _, value  = param.partition('=')
-#            param_dic[key] = value
-#            
-#    return param_dic
+    return dict(tuple(p.split('=',1)) for p in param.split(';') if '=' in p)
+
 
 def loadSubCeidLegend():
     data = pd.read_csv(workdir+'sub_ceid_legend.csv') 
@@ -234,7 +230,7 @@ def fixSubCeid(mes, sub_ceid, data):
     return mes['ceid']
         
 
-def isAshersDTP(mes_table,mes_row,ashers):
+def isAshersDTP(ashers):
     for asher in ashers.split(','):
         asher_row = mes_table.loc[(mes_table['operation'] == mes_row['operation']) &
                                   (mes_table['product'] == mes_row['product']) &
