@@ -223,11 +223,11 @@ def loadSubCeidLegend():
 
 
 # In Case the 'Layer Allowed' attribute reflect to sub CEID
-def fixSubCeid(mes, sub_ceid, data): 
+def fixSubCeid(data): 
     for index, row in data.loc[data['module']==sub_ceid].iterrows():
-        if mes[row['by']] == row['value']:
+        if mes_row[row['by']] == row['value']:
             return row['new_ceid']
-    return mes['ceid']
+    return mes_row['ceid']
         
 
 def isAshersDTP(ashers):
@@ -279,7 +279,7 @@ for sub_ceid, amct in amct_dic.items():
             drop_rows.append(row_index)
         else:          
             if sub_ceid in ceid_needed_fix:
-                mes_table.at[row_index,'ceid'] = fixSubCeid(mes_row, sub_ceid, ceid_legend)  
+                mes_table.at[row_index,'ceid'] = fixSubCeid(ceid_legend)  
             elif mes_row['ceid'] != mes_row['f28_ceid']:
                 mes_table.at[row_index,'ceid'] = mes_row['f28_ceid']
                 
