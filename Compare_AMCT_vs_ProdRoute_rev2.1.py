@@ -283,11 +283,6 @@ for sub_ceid, amct in amct_dic.items():
             elif mes_row['ceid'] != mes_row['f28_ceid']:
                 mes_table.at[row_index,'ceid'] = mes_row['f28_ceid']
                 
-#            if restrictMoq(mes_row['main_moqr'],mes_row['operation']):
-#                closeRow(mes_table,row_index,comment='MoqOper') 
-#            if restrictMoq(mes_row['main_moqr'],mes_row['route']):
-#                closeRow(mes_table,row_index,comment='MoqRoute')
-                
             restricted = restrictMoq2(mes_row) 
             if restricted:
                 closeRow(mes_table,row_index,comment=restricted)
