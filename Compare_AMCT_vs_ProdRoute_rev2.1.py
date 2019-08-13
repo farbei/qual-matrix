@@ -77,6 +77,7 @@ def maxCascade(mes_row,param):
             return float(uda_value) > float(param['MAX_WAFER_COUNT'])
     return False
 
+
 # Check if needed condition ran before operation
 def minCondition(mes_row,param):
     if 'UDA' in param.keys() and 'MIN_WAFER_COUNT' in param.keys():
@@ -210,6 +211,14 @@ def parameterList(parameter_list):
             
     return param_dic    
 
+def parameterList2(param):
+    return {p[0]:p[2] for p in param.split(';') if '=' in p}
+##    for param in param.split(';'):
+#        if '=' in param:
+#            key, _, value  = param.partition('=')
+#            param_dic[key] = value
+#            
+#    return param_dic
 
 def loadSubCeidLegend():
     data = pd.read_csv(workdir+'sub_ceid_legend.csv') 
