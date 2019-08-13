@@ -53,14 +53,12 @@ def restrictMoq2(mes):
 # Restrict L8 to run after limit operations
 def cannotFollow(mes_row,param):
     if 'CANNOT_FOLLOW_OPER' in param.keys():
-        uda_value = mesUDA(mes_row,uda='L78GENERICUDA2')
-        #if uda_value != 'nan':
-        return uda_value in param['CANNOT_FOLLOW_OPER']    
+        return mesUDA('L78GENERICUDA2') in param['CANNOT_FOLLOW_OPER']    
     return False     
 
 
 # Automation L8 UDA 
-def mesUDA(mes_row,uda):
+def mesUDA(uda):
     def uda_value(val,attrs):
         attr = re.search('([^\']*'+val+'[^\']*|$)',str(attrs)).group()
         return str(mes_row[attr]) if attr else 'nan'
@@ -69,16 +67,12 @@ def mesUDA(mes_row,uda):
         return uda_value(uda,mes_row.index)
     else:
         return {key:uda_value(key,mes_row.index) for key in uda}
-#        attr_dic = {}
-#        for key in uda:
-#            attr_dic[key] = uda_value(key,mes_row.index)
-#        return attr_dic 
 
-       
+   
 # Check for max cascading wafers allowed to run from operation     
 def maxCascade(mes_row,param):
     if 'UDA' in param.keys() and 'MAX_WAFER_COUNT' in param.keys():
-        uda_value = mesUDA(mes_row,param['UDA'])
+        uda_value = mesUDA(param['UDA'])
         if uda_value != 'nan':
             return float(uda_value) > float(param['MAX_WAFER_COUNT'])
     return False
@@ -86,7 +80,7 @@ def maxCascade(mes_row,param):
 # Check if needed condition ran before operation
 def minCondition(mes_row,param):
     if 'UDA' in param.keys() and 'MIN_WAFER_COUNT' in param.keys():
-        uda_value = mesUDA(mes_row,param['UDA'])
+        uda_value = mesUDA(param['UDA'])
         if uda_value != 'nan':
             return float(uda_value) < float(param['MIN_WAFER_COUNT'])
     return False
@@ -97,9 +91,9 @@ def restrictCounter(mes_row,param):
         return False
     uda = re.search('[^\']*UDA[^\']*|$',str(param.keys())).group()
     if uda != '':
-        uda_value = mesUDA(mes_row,param[uda])
+        uda_value = mesUDA(param[uda])
     elif re.search('INJECTION|UPPER_WALL',str(param.keys())):
-            uda_value = mesUDA(mes_row,['INJECTOR','UPPERWALL'])
+            uda_value = mesUDA(['INJECTOR','UPPERWALL'])
     else:
         return False
     
