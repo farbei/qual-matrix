@@ -68,7 +68,7 @@ def mesUDA(mes_row,uda):
     if isinstance(uda,str):
         return uda_value(uda,mes_row.index)
     else:
-        return {uda_value(key,mes_row.index) for key in uda}
+        return {key:uda_value(key,mes_row.index) for key in uda}
 #        attr_dic = {}
 #        for key in uda:
 #            attr_dic[key] = uda_value(key,mes_row.index)
@@ -267,7 +267,7 @@ ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
 for sub_ceid, amct in amct_dic.items():
-    if sub_ceid != 'GTXde':
+    if sub_ceid != 'ANTde':
         continue
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
