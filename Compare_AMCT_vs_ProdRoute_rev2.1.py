@@ -126,11 +126,11 @@ def closeRow(df,i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
     df.at[i,'close_comment'] += comment+';'
 
   
-def findAmctRow(mes,amct,join_by=['operation','product','route','entity']):
+def findAmctRow(amct,join_by=['operation','product','route','entity']):
     cols_match = [x for x in join_by if x.upper() in amct.columns]
     for idx in amct.index:
         for col in cols_match:
-            if not re.match(amct[col.upper()][idx],mes[col]):
+            if not re.match(amct[col.upper()][idx],mes_row[col]):
                 break
             if col == cols_match[-1]:
                 return amct.iloc[idx], True
@@ -293,31 +293,31 @@ for sub_ceid, amct in amct_dic.items():
                 closeRow(mes_table,row_index,comment='ChamberDTP',state='Down')
                             
             ref_tables = tables[mes_row['oper_process'][:4]]
-            f3_row, found_amct_row_flag = findAmctRow(mes_row,ref_tables['F3_SETUP'])
+            f3_row, found_amct_row_flag = findAmctRow(ref_tables['F3_SETUP'])
             if found_amct_row_flag:
                 f3_param = parameterList(f3_row['PARAMETER_LIST'])                
                 chamber_state, ashers = amctChamberState(mes_row['entity'],f3_param)
                 if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
                     closeRow(mes_table,row_index,comment=chamber_state)  
-                if ashers != 'nan' and isAshersDTP(mes_table,mes_row,ashers):
+                if ashers != 'nan' and isAshersDTP(ashers):
                     closeRow(mes_table,row_index,comment='NoAshers',state='No Ashers')  
                 if restrictCounter(mes_row,f3_param):
                     closeRow(mes_table,row_index,comment='PmCounter')
                                 
                 # TOOL FILTER Table in AMCT
                 if 'TOOL_FILTER' in ref_tables.keys():
-                    tf_row, tool_filter_flag = findAmctRow(mes_row,ref_tables['TOOL_FILTER'])
+                    tf_row, tool_filter_flag = findAmctRow(ref_tables['TOOL_FILTER'])
                     if tool_filter_flag and str(tf_row['TOOL_ALLOWED']).lower() == 'false':
                         closeRow(mes_table,row_index,comment='ToolFilter:'+tf_row['COMMENTS'])
     
                 if 'LAYERGROUP' in ref_tables.keys():
-                    lg_row, layergroup_flag = findAmctRow(mes_row,ref_tables['LAYERGROUP'])
+                    lg_row, layergroup_flag = findAmctRow(ref_tables['LAYERGROUP'])
                     if layergroup_flag and layerClosed(mes_row,lg_row['PARAMETER_LIST']): 
                         closeRow(mes_table,row_index,comment='LayerGroup')
                        
                 # when ceid use OperUsage table to open/close operation per mes counter.  
                 if 'OPER_USAGE' in ref_tables.keys():
-                    ou_row, operusage_flag = findAmctRow(mes_row,ref_tables['OPER_USAGE'])
+                    ou_row, operusage_flag = findAmctRow(ref_tables['OPER_USAGE'])
                     if operusage_flag:
                         operusage_param = parameterList(ou_row['PARAMETER_LIST'])
                         if restrictCounter(mes_row,param=operusage_param):
@@ -326,7 +326,7 @@ for sub_ceid, amct in amct_dic.items():
                             closeRow(mes_table,row_index,comment='CannotFollowOper')
                                 
                 if 'CASCADE_OPER' in ref_tables.keys():
-                    co_row, cascade_oper_flag = findAmctRow(mes_row,ref_tables['CASCADE_OPER'])
+                    co_row, cascade_oper_flag = findAmctRow(ref_tables['CASCADE_OPER'])
                     if cascade_oper_flag:
                         cascade_param = parameterList(co_row['PARAMETER_LIST'])
                         if cannotFollow(mes_row,param=cascade_param):
@@ -337,10 +337,11 @@ for sub_ceid, amct in amct_dic.items():
                             closeRow(mes_table,row_index,comment='MaxCascade')
                                 
                 if 'fsui_rules' in ref_tables.keys():
-                    do_nothing = 0
-                    # Need to do something!!!
+                    pass # Need to do something!!!
                                 
-            if not found_amct_row_flag or (mes_row['processed'] == 0 and mes_table['open'][row_index] != 'Up & Open'):
+            if not found_amct_row_flag or (
+                    not mes_row['processed'] 
+                    and mes_table['open'][row_index] != 'Up & Open'):
                 drop_rows.append(row_index)
     
     
