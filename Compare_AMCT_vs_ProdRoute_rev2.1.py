@@ -275,7 +275,7 @@ for sub_ceid, amct in amct_dic.items():
     
     drop_rows = []
     for row_index, mes_row in mes_table.iterrows():
-        if mes_row['processed'] == 0 and mes_row['product'] == 'nan':
+        if not mes_row['processed'] and mes_row['product'] == 'nan':
             drop_rows.append(row_index)
         else:          
             if sub_ceid in ceid_needed_fix:
