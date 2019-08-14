@@ -170,20 +170,18 @@ def layerClosed(mes_row,param):
 
         
 def amctChamberState(entity,f3_param):
-    etcher, ashers = 'noAmctChamberRef', 'nan'
-    
     for par in ['CH_POR','CH_EX','CH_ASH','CH_SIF']:
         if par in f3_param.keys() and entity[-1] in f3_param[par]:
             if 'CH_ASH' in f3_param.keys() and entity[-1] < '7':
-                ashers = f3_param['CH_ASH']
-            return par, ashers 
+                return par, f3_param['CH_ASH']
+            return par, 'nan' 
      
     for par in ['RECIPE_NAME','RECIPE_CHAMBER'+entity[-1]]:
         if par in f3_param.keys() and f3_param[par]:
-            etcher = 'CH_SIF' if re.search('SIF',f3_param[par]) else 'CH_POR'
-            return etcher, ashers 
+            etcher = 'CH_SIF' if 'SIF' in f3_param[par] else 'CH_POR'
+            return etcher, 'nan' 
 
-    return etcher, ashers
+    return 'noAmctChamberRef', 'nan'
 
 
 def amct2moduleDic():
@@ -227,17 +225,7 @@ def loadAMCTtables(models_list):
                     data = wildCards(data,columns=['OPERATION','ENTITY','PRODUCT','ROUTE'])
                     tables[process][table] = data    
     return tables, tables_size
-        
-
-#def parameterList(parameter_list):
-#    param_dic = {}
-#    for param in parameter_list.split(';'):
-#        if '=' in param:
-#            key, _, value  = param.partition('=')
-#            param_dic[key] = value
-#            
-#    return param_dic    
-
+   
 
 def parameterList(param):
     return dict(tuple(p.split('=',1)) for p in param.split(';') if '=' in p)
