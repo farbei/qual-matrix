@@ -101,7 +101,7 @@ def restrictCounter(mes_row,param):
     if uda_value == 'nan':
         return False
     
-    if re.search('RANGES',str(param.keys())):
+    if 'RANGES' in param.keys():
         for counter_limits in param['RANGES'].split(','):
             min_range, _, max_range  = counter_limits.partition('-')
             if float(min_range) < float(uda_value) < float(max_range):
@@ -118,6 +118,33 @@ def restrictCounter(mes_row,param):
         return False
 
 
+def restrictCounter2(mes_row,param):
+    if re.search('UDA|RANGE',str(param.keys())):
+        uda = re.search('(PM_UDA|RANGE_UDA|$)',str(param.keys())).group()
+        if uda == '' and re.search('INJECTION|UPPER_WALL',str(param.keys())):
+            uda = ['INJECTOR','UPPERWALL']
+        uda_value = mesUDA(param[uda]) 
+        if uda_value == 'nan':
+            return False
+    else:
+        False
+       
+    if 'RANGES' in param.keys():
+        for ranges in param['RANGES'].split(','):
+            min_range, _, max_range  = ranges.partition('-')
+            if float(min_range) < float(uda_value) < float(max_range):
+                return False 
+        return True
+    else:
+        min_uda = re.findall('MIN_[PM|UDA|RANGE][^\']*',str(param.keys()))
+        lower_limit = '0' if min_uda == [] else param[min_uda[0]]
+        max_uda = re.findall('MAX_[PM|UDA|RANGE][^\']*',str(param.keys()))
+        for x, y in zip(max_uda, uda_value.values()):
+            upper_limit = '9999' if param[x] == 'nan' else param[x]
+            if not float(lower_limit) < float(y) < float(upper_limit):
+                return True
+        return False
+    
 def closeRow(df,i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
     if state in dic.keys():
         df.at[i,'open'] = df.at[i,'open'].replace(dic[state],state)
