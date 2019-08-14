@@ -16,7 +16,7 @@ from script_setting import dirs_address, amct_classes
 
 workdir, outputdir = dirs_address()
 
-def wildCards(df,columns):
+def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
     for col in columns:
         if col in df.columns:
             if str(df[col].unique()) == '[nan]':
@@ -221,7 +221,7 @@ def loadAMCTtables(models_list):
                 if table in tables_names:
                     data = pd.read_csv(fname) 
                     tables_size.append(len(data))
-                    data = wildCards(data,columns=['OPERATION','ENTITY','PRODUCT','ROUTE'])
+                    data = wildCards(data)
                     tables[process][table] = data    
     return tables, tables_size
    
