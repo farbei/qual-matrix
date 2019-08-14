@@ -221,8 +221,7 @@ def loadAMCTtables(models_list):
                 if table in tables_names:
                     data = pd.read_csv(fname) 
                     tables_size.append(len(data))
-                    data = wildCards(data)
-                    tables[process][table] = data    
+                    tables[process][table] = wildCards(data)    
     return tables, tables_size
    
 
