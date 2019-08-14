@@ -119,16 +119,14 @@ def restrictCounter(mes_row,param):
 
 
 def restrictCounter2(mes_row,param):
-    if re.search('UDA|RANGE',str(param.keys())):
-        uda = re.search('(PM_UDA|RANGE_UDA|$)',str(param.keys())).group()
-        if uda == '' and re.search('INJECTION|UPPER_WALL',str(param.keys())):
-            uda = ['INJECTOR','UPPERWALL']
-        uda_value = mesUDA(param[uda]) 
-        if uda_value == 'nan':
-            return False
+    if re.search('INJECTION|UPPER_WALL',str(param.keys())):
+        uda = ['INJECTOR','UPPERWALL']
     else:
-        False
-       
+        uda = re.search('(PM_UDA|RANGE_UDA|$)',str(param.keys())).group()
+    uda_value = mesUDA(param[uda]) 
+    if uda_value == 'nan':
+        return False
+
     if 'RANGES' in param.keys():
         for ranges in param['RANGES'].split(','):
             min_range, _, max_range  = ranges.partition('-')
@@ -144,6 +142,7 @@ def restrictCounter2(mes_row,param):
             if not float(lower_limit) < float(y) < float(upper_limit):
                 return True
         return False
+    
     
 def closeRow(df,i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
     if state in dic.keys():
@@ -245,14 +244,12 @@ def fixSubCeid(data):
     return mes_row['ceid']
         
 
-def isAshersDTP(ashers):
+def isAshersDTP(df,ashers):
+    oper, prod, rout, ent = mes_row[['operation','product','route','entity']]
+    mask = (df.operation == oper) & (df.product == prod) & (df.route == rout)
     for asher in ashers.split(','):
-        asher_row = mes_table.loc[(mes_table['operation'] == mes_row['operation']) &
-                                  (mes_table['product'] == mes_row['product']) &
-                                  (mes_table['route'] == mes_row['route']) &
-                                  (mes_table['entity'] == mes_row['entity'][:-1]+asher) ]
-        
-        if not asher_row.empty and asher_row['open'].item() == 'Up&Open':
+        asher = mes_table.loc[mask & (df.entity == ent[:-1]+asher)]
+        if not asher.empty and asher['open'].item() == 'Up&Open':
             return False
     return True 
 
@@ -314,7 +311,7 @@ for sub_ceid, amct in amct_dic.items():
                 chamber_state, ashers = amctChamberState(mes_row['entity'],f3_param)
                 if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
                     closeRow(mes_table,row_index,comment=chamber_state)  
-                if ashers != 'nan' and isAshersDTP(ashers):
+                if ashers != 'nan' and isAshersDTP(mes_table,ashers):
                     closeRow(mes_table,row_index,comment='NoAshers',state='No Ashers')  
                 if restrictCounter(mes_row,f3_param):
                     closeRow(mes_table,row_index,comment='PmCounter')
