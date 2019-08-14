@@ -16,6 +16,7 @@ from script_setting import dirs_address, amct_classes
 
 workdir, outputdir = dirs_address()
 
+
 def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
     for col in columns:
         if col in df.columns:
@@ -61,7 +62,7 @@ def cannotFollow(mes_row,param):
 def mesUDA(uda):
     def uda_value(val,attrs):
         attr = re.search('([^\']*'+val+'[^\']*|$)',str(attrs)).group()
-        return str(mes_row[attr]) if attr else 'nan'
+        return str(mes_row[attr]) if (val and attr) else 'nan'
     
     if isinstance(uda,str):
         return uda_value(uda,mes_row.index)
