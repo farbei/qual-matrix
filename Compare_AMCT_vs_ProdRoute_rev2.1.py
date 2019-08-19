@@ -169,7 +169,7 @@ def layerClosed(mes_row,param):
     return (layer in mes_row.index and mes_row[layer] == 'DOWN')
 
         
-def amctChamberState(entity,f3_param):
+def amctState(entity,f3_param):
     for par in ['CH_POR','CH_EX','CH_ASH','CH_SIF']:
         if par in f3_param.keys() and entity[-1] in f3_param[par]:
             if 'CH_ASH' in f3_param.keys() and entity[-1] < '7':
@@ -294,7 +294,7 @@ for sub_ceid, amct in amct_dic.items():
             elif mes_row['ceid'] != mes_row['f28_ceid']:
                 mes_table.at[row_index,'ceid'] = mes_row['f28_ceid']
                 
-            restricted = restrictMoq2(mes_row) 
+            restricted = restrictMoq(mes_row) 
             if restricted:
                 closeRow(mes_table,row_index,comment=restricted)
                         
@@ -307,7 +307,7 @@ for sub_ceid, amct in amct_dic.items():
             f3_row, found_amct_row_flag = findAmctRow(ref_tables['F3_SETUP'])
             if found_amct_row_flag:
                 f3_param = parameterList(f3_row['PARAMETER_LIST'])                
-                chamber_state, ashers = amctChamberState(mes_row['entity'],f3_param)
+                chamber_state, ashers = amctState(mes_row['entity'],f3_param)
                 if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
                     closeRow(mes_table,row_index,comment=chamber_state)  
                 if ashers != 'nan' and isAshersDTP(mes_table,ashers):
