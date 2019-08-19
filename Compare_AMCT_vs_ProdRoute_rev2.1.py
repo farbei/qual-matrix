@@ -356,8 +356,8 @@ for sub_ceid, amct in amct_dic.items():
                 drop_rows.append(row_index)
     
     
-    need_columns = ['ceid','operation','oper_short_desc','product','route','LA24',
-                    'entity','open','close_comment','Inv','LA6','LA12']   
+    need_columns = ['ceid','operation','oper_short_desc','product','route',
+                    'LA24','entity','open','close_comment','Inv','LA6','LA12']   
     df_post = mes_table[need_columns].drop(index=drop_rows)
 
     sub_ceid_list = list(df_post['ceid'].unique())
