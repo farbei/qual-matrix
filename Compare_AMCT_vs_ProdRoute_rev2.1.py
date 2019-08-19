@@ -210,16 +210,15 @@ def loadMEStable(ceid):
 
 
 def loadAMCTtables(models_list):
-    tables_names, process = amct_classes()
-    tables = dict(zip(process, [{},{}]))
-    tables_size = []
+    tables_name, process = amct_classes()
+    tables, tables_size = dict(zip(process, [{},{}])), []
     
     for idx, val in enumerate(models_list):
         if val != 'X':
             for fname in glob.glob('*'+val+'*.csv'):
                 process = re.match('(\d{4}|$)', fname).group()
-                table = re.search('('+'|'.join(tables_names)+')[^\.]*|$', fname).group()
-                if table in tables_names:
+                table = re.search('('+tables_name+')[^\.]*|$', fname).group()
+                if table in tables_name:
                     data = pd.read_csv(fname) 
                     tables_size.append(len(data))
                     tables[process][table] = wildCards(data)    
