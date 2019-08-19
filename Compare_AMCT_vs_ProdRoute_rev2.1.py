@@ -18,12 +18,12 @@ workdir, outputdir = dirs_address()
 
 
 def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
-    for col in columns:
-        if col in df.columns:
-            if str(df[col].unique()) == '[nan]':
-                df = df.drop(columns=col)
+    for c in columns:
+        if c in df.columns:
+            if all(df[c].unique() == np.nan):
+                df = df.drop(columns=c)
             else:
-                df[col] = df[col].astype('str').str.replace('*','.*').str.replace('?','.')
+                df[c] = df[c].astype('str').replace('*','.*').replace('?','.')
     return df    
 
 
