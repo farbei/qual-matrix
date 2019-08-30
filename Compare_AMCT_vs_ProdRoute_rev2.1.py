@@ -67,7 +67,7 @@ def mesUDA(uda):
 # Automation L8 UDA 
 def mesUDA2(uda):
     attr = re.search('[^\']*'+uda+'[^\']*',str(mes_row.index))
-    return str(mes_row[attr.group()]) if attr else 'nan'
+    return (uda,str(mes_row[attr.group()])) if attr else (uda,'nan')
 
    
 # Check for max cascading wafers allowed to run from operation     
@@ -120,29 +120,31 @@ def restrictCounter(mes_row,param):
 
 
 def restrictCounter2(mes_row,param):
-    if re.search('INJECTION|UPPER_WALL',str(param.keys())):
+
+    if 'MAX_RANGE_INJECTION' in param.keys():
         uda = ['INJECTOR','UPPERWALL']
     else:
         uda = re.search('(PM_UDA|RANGE_UDA|$)',str(param.keys())).group()
-    uda_value = mesUDA(param[uda]) 
-    if uda_value == 'nan':
-        return False
-
-    if 'RANGES' in param.keys():
-        for ranges in param['RANGES'].split(','):
-            min_range, _, max_range  = ranges.partition('-')
-            if float(min_range) < float(uda_value) < float(max_range):
-                return False 
-        return True
-    else:
-        min_uda = re.findall('MIN_[PM|UDA|RANGE][^\']*',str(param.keys()))
-        lower_limit = '0' if min_uda == [] else param[min_uda[0]]
-        max_uda = re.findall('MAX_[PM|UDA|RANGE][^\']*',str(param.keys()))
-        for x, y in zip(max_uda, uda_value.values()):
-            upper_limit = '9999' if param[x] == 'nan' else param[x]
-            if not float(lower_limit) < float(y) < float(upper_limit):
-                return True
-        return False
+        uda = param[uda] if uda else 'nan'
+    
+    for counter, value in map(mesUDA2,uda):    
+        if value == 'nan':
+            continue
+        if 'RANGES' in param.keys():
+            for ranges in param['RANGES'].split(','):
+                min_range, _, max_range  = ranges.partition('-')
+                if float(min_range) < float(value) < float(max_range):
+                    return False 
+            return True
+        else:
+            min_uda = re.search('MIN_[PM|UDA|RANGE]',str(param.keys()))
+            lower_limit = param[min_uda] if min_uda else '0'
+            max_uda = re.findall('MAX_[PM|UDA|RANGE][^\']*',str(param.keys()))
+            for x, y in zip(max_uda, value.values()):
+                upper_limit = '9999' if param[x] == 'nan' else param[x]
+                if not float(lower_limit) < float(y) < float(upper_limit):
+                    return True
+            return False
     
     
 def closeRow(df,i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
