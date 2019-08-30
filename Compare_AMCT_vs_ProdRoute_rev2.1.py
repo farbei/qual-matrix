@@ -159,8 +159,11 @@ def findAmctRow(amct,join_by=['operation','product','route','entity']):
     cols = [x for x in join_by if x.upper() in amct.columns]
     for idx, row in amct.iterrows():
         for col in cols:
-            if re.match(row[col.upper()],mes_row[col]) and col == cols[-1]:
-                    return row, True
+            try:
+                if re.match(row[col.upper()],mes_row[col]) and col == cols[-1]:
+                        return row, True
+            except:
+                pass
     return [], False
                               
 
@@ -254,7 +257,8 @@ def isAshersDTP(df,ashers):
 
 
 def summarizeOperState(df,df_summ):
-    idx = [c for c in df.columns if c not in ['entity','close_comment','open']]
+    #idx = [c for c in df.columns if c not in ['entity','close_comment','open']]
+    idx = set(df.columns) - set(['entity','close_comment','open'])
     table = df.pivot_table(values='entity', index=idx, columns=['open'],
                            aggfunc={'entity': 'count'}).reset_index()
     
