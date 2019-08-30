@@ -18,13 +18,11 @@ workdir, outputdir = dirs_address()
 
 
 def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
-    for c in columns:
-        if c in df.columns:
-            if all(df[c].unique() == np.nan):
-                df = df.drop(columns=c)
-            else:
-                df[c] = df[c].astype('str')
-                df[c] = df[c].str.replace('*','.*').replace('?','.')
+    for c in filter(lambda c: c in df.columns, columns):
+        if all(df[c].unique() == np.nan):
+            df = df.drop(columns=c)
+        else:
+            df[c] = df[c].astype('str').str.replace('*','.*').replace('?','.')
     return df    
 
 
@@ -159,11 +157,8 @@ def findAmctRow(amct,join_by=['operation','product','route','entity']):
     cols = [x for x in join_by if x.upper() in amct.columns]
     for idx, row in amct.iterrows():
         for col in cols:
-            try:
-                if re.match(row[col.upper()],mes_row[col]) and col == cols[-1]:
-                        return row, True
-            except:
-                pass
+            if re.match(row[col.upper()],mes_row[col]) and col == cols[-1]:
+                return row, True
     return [], False
                               
 
@@ -257,7 +252,6 @@ def isAshersDTP(df,ashers):
 
 
 def summarizeOperState(df,df_summ):
-    #idx = [c for c in df.columns if c not in ['entity','close_comment','open']]
     idx = set(df.columns) - set(['entity','close_comment','open'])
     table = df.pivot_table(values='entity', index=idx, columns=['open'],
                            aggfunc={'entity': 'count'}).reset_index()
