@@ -23,7 +23,8 @@ def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
             if all(df[c].unique() == np.nan):
                 df = df.drop(columns=c)
             else:
-                df[c] = df[c].astype('str').replace('*','.*').replace('?','.')
+                df[c] = df[c].astype('str')
+                df[c] = df[c].str.replace('*','.*').replace('?','.')
     return df    
 
 
@@ -356,8 +357,8 @@ for sub_ceid, amct in amct_dic.items():
                 drop_rows.append(row_index)
     
     
-    need_columns = ['ceid','operation','oper_short_desc','product','route',
-                    'LA24','entity','open','close_comment','Inv','LA6','LA12']   
+    need_columns = ['ceid','operation','oper_short_desc','product','route','LA24',
+                    'entity','open','close_comment','Inv','LA6','LA12']   
     df_post = mes_table[need_columns].drop(index=drop_rows)
 
     sub_ceid_list = list(df_post['ceid'].unique())
