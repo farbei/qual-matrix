@@ -156,13 +156,11 @@ def closeRow(df,i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
 
   
 def findAmctRow(amct,join_by=['operation','product','route','entity']):
-    cols_match = [x for x in join_by if x.upper() in amct.columns]
-    for idx in amct.index:
-        for col in cols_match:
-            if not re.match(amct[col.upper()][idx],mes_row[col]):
-                break
-            if col == cols_match[-1]:
-                return amct.iloc[idx], True
+    cols = [x for x in join_by if x.upper() in amct.columns]
+    for idx, row in amct.iterrows():
+        for col in cols:
+            if re.match(row[col.upper()],mes_row[col]) and col == cols[-1]:
+                    return row, True
     return [], False
                               
 
