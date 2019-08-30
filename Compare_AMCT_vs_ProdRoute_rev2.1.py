@@ -28,13 +28,6 @@ def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
     return df    
 
 
-#def restrictMoq(uda,param):
-#    restrict = '('+re.sub(r'\|+','|',re.sub(r'%[^%]*%','',uda).strip('/').replace('/','|'))+')$'
-#    if not re.match('\d+',str(param)):
-#        restrict = restrict.replace('*','.*').replace('?','.')
-#    return re.match(restrict,param)
-
-
 def restrictMoq(mes):
     if mes['main_moqr'] in ['nan','EMPTY']:
         return ''
