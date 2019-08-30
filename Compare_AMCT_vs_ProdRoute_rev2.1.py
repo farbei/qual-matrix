@@ -63,6 +63,11 @@ def mesUDA(uda):
     else:
         return {key:uda_value(key,mes_row.index) for key in uda}
 
+# Automation L8 UDA 
+def mesUDA2(uda):
+    attr = re.search('[^\']*'+uda+'[^\']*',str(mes_row.index))
+    return str(mes_row[attr.group()]) if attr else 'nan'
+
    
 # Check for max cascading wafers allowed to run from operation     
 def maxCascade(mes_row,param):
