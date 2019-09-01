@@ -184,9 +184,8 @@ def amctState(entity,f3_param):
 
 def amct2moduleDic():
     data = pd.read_csv(workdir+'config_file_DB_rev2.csv') 
-    keys = data['Module']
     values = data[['AMCT_Table','AMCT_Table_72']].values.tolist()
-    return dict(zip(keys, values))
+    return dict(zip(data['Module'], values))
 
 
 def loadMEStable(ceid):
