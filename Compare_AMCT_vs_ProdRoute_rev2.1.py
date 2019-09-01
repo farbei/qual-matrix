@@ -144,13 +144,13 @@ def restrictCounter2(mes_row,param):
                     return True
             return False
     
-    
-def closeRow(df,i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
+
+def closeRow(i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
     if state in dic.keys():
-        df.at[i,'open'] = df.at[i,'open'].replace(dic[state],state)
+        mes_table.at[i,'open'] = mes_table['open'][i].replace(dic[state],state)
     else:
-        df.at[i,'open'] += '&'+state    
-    df.at[i,'close_comment'] += comment+';'
+        mes_table.at[i,'open'] += '&'+state    
+    mes_table.at[i,'close_comment'] += comment+';'
 
   
 def findAmctRow(amct,join_by=['operation','product','route','entity']):
@@ -162,7 +162,7 @@ def findAmctRow(amct,join_by=['operation','product','route','entity']):
     return [], False
                               
 
-def layerClosed(mes_row,param):
+def layerClosed(param):
     layer = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
     return (layer in mes_row.index and mes_row[layer] == 'DOWN')
 
@@ -251,6 +251,13 @@ def isAshersDTP(df,ash):
     return mes_table.loc[mask & (df['open'] == 'Up&Open') ].empty
 
 
+def tool_allowed(tf_row):
+    if tf_row.empty:
+        return False, 'TF=noRef'
+    comment = tf_row['COMMENTS'] if 'COMMENTS' in tf_row.index else 'TF'
+    return str(tf_row['TOOL_ALLOWED']).upper() == 'TRUE', comment
+
+        
 def summarizeOperState(df,df_summ):
     idx = set(df.columns) - set(['entity','close_comment','open'])
     table = df.pivot_table(values='entity', index=idx, columns=['open'],
@@ -283,80 +290,79 @@ for sub_ceid, amct in amct_dic.items():
         continue
     
     drop_rows = []
-    for row_index, mes_row in mes_table.iterrows():
+    for row_idx, mes_row in mes_table.iterrows():
         if not mes_row['processed'] and mes_row['product'] == 'nan':
-            drop_rows.append(row_index)
-        else:          
-            if sub_ceid in ceid_needed_fix:
-                mes_table.at[row_index,'ceid'] = fixSubCeid(ceid_legend)  
-            elif mes_row['ceid'] != mes_row['f28_ceid']:
-                mes_table.at[row_index,'ceid'] = mes_row['f28_ceid']
-                
-            restricted = restrictMoq(mes_row) 
-            if restricted:
-                closeRow(mes_table,row_index,comment=restricted)
-                        
-            if mes_row['main_availability'] == 'Down':
-                closeRow(mes_table,row_index,comment='MainDTP',state='Down')
-            if mes_row['sub_availability'] == 'Down':
-                closeRow(mes_table,row_index,comment='ChamberDTP',state='Down')
-                            
-            ref_tables = tables[mes_row['oper_process'][:4]]
+            drop_rows.append(row_idx)
+            continue
+         
+        if sub_ceid in ceid_needed_fix:
+            mes_table.at[row_idx,'ceid'] = fixSubCeid(ceid_legend)  
+        elif mes_row['ceid'] != mes_row['f28_ceid']:
+            mes_table.at[row_idx,'ceid'] = mes_row['f28_ceid']
             
-            # TOOL FILTER Table in AMCT
-
-            tf_row, tf_flag = findAmctRow(ref_tables['TOOL_FILTER'])
-            if tf_flag and str(tf_row['TOOL_ALLOWED']).lower() == 'false':
-                closeRow(mes_table,row_index,comment='TF:'+tf_row['COMMENTS'])
+        restricted = restrictMoq(mes_row) 
+        if restricted:
+            closeRow(row_idx,comment=restricted)
                     
-            f3_row, found_amct_row_flag = findAmctRow(ref_tables['F3_SETUP'])
-            if found_amct_row_flag:
-                f3_param = parameterList(f3_row['PARAMETER_LIST'])                
-                chamber_state, ashers = amctState(mes_row['entity'],f3_param)
-                if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
-                    closeRow(mes_table,row_index,comment=chamber_state)  
-                if isAshersDTP(mes_table,ashers):
-                    closeRow(mes_table,row_index,comment='NoAshers',state='No Ashers')  
-                if restrictCounter(mes_row,f3_param):
-                    closeRow(mes_table,row_index,comment='PmCounter')
+        if mes_row['main_availability'] == 'Down':
+            closeRow(row_idx,comment='MainDTP',state='Down')
+        if mes_row['sub_availability'] == 'Down':
+            closeRow(row_idx,comment='ChamberDTP',state='Down')
+                        
+        ref_tables = tables[mes_row['oper_process'][:4]]
+        # TOOL FILTER Table in AMCT
+        tf_row, _ = findAmctRow(ref_tables['TOOL_FILTER'])
+        tf_allowed, tf_comment = tool_allowed(tf_row)
+        if not tf_allowed:
+            closeRow(row_idx,comment=tf_comment)
+                
+        f3_row, found_amct_row_flag = findAmctRow(ref_tables['F3_SETUP'])
+        if found_amct_row_flag:
+            f3_param = parameterList(f3_row['PARAMETER_LIST'])                
+            chamber_state, ashers = amctState(mes_row['entity'],f3_param)
+            if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
+                closeRow(row_idx,comment=chamber_state)  
+            if isAshersDTP(mes_table,ashers):
+                closeRow(row_idx,comment='NoAshers',state='No Ashers')  
+            if restrictCounter(mes_row,f3_param):
+                closeRow(row_idx,comment='PmCounter')
+
+            if 'LAYERGROUP' in ref_tables.keys():
+                lg_row, lg_flag = findAmctRow(ref_tables['LAYERGROUP'])
+                if lg_flag and layerClosed(lg_row['PARAMETER_LIST']): 
+                    closeRow(row_idx,comment='LayerGroup')
+                   
+            if 'OPER_USAGE' in ref_tables.keys():
+                ou_row, ou_flag = findAmctRow(ref_tables['OPER_USAGE'])
+                if ou_flag:
+                    operusage_param = parameterList(ou_row['PARAMETER_LIST'])
+                    if restrictCounter(mes_row,param=operusage_param):
+                        closeRow(row_idx,comment='PmCounter')                        
+                    if cannotFollow(mes_row,param=operusage_param):
+                        closeRow(row_idx,comment='CannotFollowOper')
+                            
+            if 'CASCADE_OPER' in ref_tables.keys():
+                co_row, co_flag = findAmctRow(ref_tables['CASCADE_OPER'])
+                if co_flag:
+                    cascade_param = parameterList(co_row['PARAMETER_LIST'])
+                    if cannotFollow(mes_row,param=cascade_param):
+                        closeRow(row_idx,comment='CannotFollowOper')                        
+                    if minCondition(mes_row,param=cascade_param):
+                        closeRow(row_idx,comment='NeedCond')   
+                    if maxCascade(mes_row,param=cascade_param):
+                        closeRow(row_idx,comment='MaxCascade')
+                            
+            if 'fsui_rules' in ref_tables.keys():
+                pass # Need to do something!!!
+                            
+        if not found_amct_row_flag or (
+                not mes_row['processed'] 
+                and mes_table['open'][row_idx] != 'Up & Open'):
+            drop_rows.append(row_idx)
     
-                if 'LAYERGROUP' in ref_tables.keys():
-                    lg_row, layergroup_flag = findAmctRow(ref_tables['LAYERGROUP'])
-                    if layergroup_flag and layerClosed(mes_row,lg_row['PARAMETER_LIST']): 
-                        closeRow(mes_table,row_index,comment='LayerGroup')
-                       
-                # when ceid use OperUsage table to open/close operation per mes counter.  
-                if 'OPER_USAGE' in ref_tables.keys():
-                    ou_row, operusage_flag = findAmctRow(ref_tables['OPER_USAGE'])
-                    if operusage_flag:
-                        operusage_param = parameterList(ou_row['PARAMETER_LIST'])
-                        if restrictCounter(mes_row,param=operusage_param):
-                            closeRow(mes_table,row_index,comment='PmCounter')                        
-                        if cannotFollow(mes_row,param=operusage_param):
-                            closeRow(mes_table,row_index,comment='CannotFollowOper')
-                                
-                if 'CASCADE_OPER' in ref_tables.keys():
-                    co_row, cascade_oper_flag = findAmctRow(ref_tables['CASCADE_OPER'])
-                    if cascade_oper_flag:
-                        cascade_param = parameterList(co_row['PARAMETER_LIST'])
-                        if cannotFollow(mes_row,param=cascade_param):
-                            closeRow(mes_table,row_index,comment='CannotFollowOper')                        
-                        if minCondition(mes_row,param=cascade_param):
-                            closeRow(mes_table,row_index,comment='NeedCond')   
-                        if maxCascade(mes_row,param=cascade_param):
-                            closeRow(mes_table,row_index,comment='MaxCascade')
-                                
-                if 'fsui_rules' in ref_tables.keys():
-                    pass # Need to do something!!!
-                                
-            if not found_amct_row_flag or (
-                    not mes_row['processed'] 
-                    and mes_table['open'][row_index] != 'Up & Open'):
-                drop_rows.append(row_index)
     
-    
-    need_columns = ['ceid','operation','oper_short_desc','product','route','LA24',
-                    'entity','open','close_comment','Inv','LA6','LA12']   
+    need_columns = ['ceid','operation','oper_short_desc','product','route',
+                    'LA24','entity','open','close_comment','Inv','LA6','LA12']   
     df_post = mes_table[need_columns].drop(index=drop_rows)
 
     sub_ceid_list = list(df_post['ceid'].unique())
@@ -376,7 +382,8 @@ for sub_ceid, amct in amct_dic.items():
         with open('checkSum.txt', 'a') as myfile: 
             myfile.write(txt + str(dt.now()) + '\n') 
 
-
+    print(time.time() - t)
+    
 df_summ.to_csv(outputdir+'final_table.csv', index=False)
 
 print(time.time() - t)
