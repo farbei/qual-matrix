@@ -173,14 +173,14 @@ def amctState(entity,f3_param):
         if par in f3_param.keys() and entity[-1] in f3_param[par]:
             if 'CH_ASH' in f3_param.keys() and entity[-1] < '7':
                 return par, f3_param['CH_ASH']
-            return par, 'nan' 
+            return par, None 
      
     for par in ['RECIPE_NAME','RECIPE_CHAMBER'+entity[-1]]:
         if par in f3_param.keys() and f3_param[par]:
             etcher = 'CH_SIF' if 'SIF' in f3_param[par] else 'CH_POR'
-            return etcher, 'nan' 
+            return etcher, None 
 
-    return 'noAmctChamberRef', 'nan'
+    return 'noAmctChamberRef', None
 
 
 def amct2moduleDic():
@@ -240,14 +240,16 @@ def fixSubCeid(data):
     return mes_row['ceid']
         
 
-def isAshersDTP(df,ashers):
-    oper, prod, rout, ent = mes_row[['operation','product','route','entity']]
-    mask = (df.operation == oper) & (df.product == prod) & (df.route == rout)
-    for asher in ashers.split(','):
-        asher = mes_table.loc[mask & (df.entity == ent[:-1]+asher)]
-        if not asher.empty and asher['open'].item() == 'Up&Open':
-            return False
-    return True 
+def isAshersDTP(df,ash):
+    if ash == None or mes_row['entity'].endswith(('7','8')):
+        return False
+    
+    ashers = [mes_row['entity'][:-1]+x for x in ash.split(',')]
+    mask = ( (df['operation'] == mes_row['operation'])
+           & (df['product'] == mes_row['product']) 
+           & (df['route'] == mes_row['route']) 
+           & (df['entity'].isin(ashers)) )
+    return mes_table.loc[mask & (df['open'] == 'Up&Open') ].empty
 
 
 def summarizeOperState(df,df_summ):
@@ -307,7 +309,7 @@ for sub_ceid, amct in amct_dic.items():
                 chamber_state, ashers = amctState(mes_row['entity'],f3_param)
                 if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
                     closeRow(mes_table,row_index,comment=chamber_state)  
-                if ashers != 'nan' and isAshersDTP(mes_table,ashers):
+                if isAshersDTP(mes_table,ashers):
                     closeRow(mes_table,row_index,comment='NoAshers',state='No Ashers')  
                 if restrictCounter(mes_row,f3_param):
                     closeRow(mes_table,row_index,comment='PmCounter')
