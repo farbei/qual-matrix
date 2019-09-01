@@ -18,12 +18,13 @@ workdir, outputdir = dirs_address()
 
 
 def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
-    for c in filter(lambda c: c in df.columns, columns):
-        if all(df[c].unique() == np.nan):
-            df = df.drop(columns=c)
+    for col in filter(lambda c: c in df.columns, columns):
+        if all(df[col].unique() == np.nan):
+            df = df.drop(columns=col)
         else:
-            df[c] = df[c].astype('str').str.replace('*','.*').replace('?','.')
-    return df    
+            df[col] = df[col].astype('str') 
+            df[col] = df[col].str.replace('*','.*').str.replace('?','.')
+    return df
 
 
 def restrictMoq(mes):
