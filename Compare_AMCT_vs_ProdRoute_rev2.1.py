@@ -12,7 +12,8 @@ import pandas as pd
 import numpy as np
 from datetime import datetime as dt
 from script_setting import dirs_address, amct_classes
-#import time
+import time
+t = time.time()
 
 workdir, outputdir = dirs_address()
 
@@ -301,6 +302,13 @@ for sub_ceid, amct in amct_dic.items():
                 closeRow(mes_table,row_index,comment='ChamberDTP',state='Down')
                             
             ref_tables = tables[mes_row['oper_process'][:4]]
+            
+            # TOOL FILTER Table in AMCT
+
+            tf_row, tf_flag = findAmctRow(ref_tables['TOOL_FILTER'])
+            if tf_flag and str(tf_row['TOOL_ALLOWED']).lower() == 'false':
+                closeRow(mes_table,row_index,comment='TF:'+tf_row['COMMENTS'])
+                    
             f3_row, found_amct_row_flag = findAmctRow(ref_tables['F3_SETUP'])
             if found_amct_row_flag:
                 f3_param = parameterList(f3_row['PARAMETER_LIST'])                
@@ -311,12 +319,6 @@ for sub_ceid, amct in amct_dic.items():
                     closeRow(mes_table,row_index,comment='NoAshers',state='No Ashers')  
                 if restrictCounter(mes_row,f3_param):
                     closeRow(mes_table,row_index,comment='PmCounter')
-                                
-                # TOOL FILTER Table in AMCT
-                if 'TOOL_FILTER' in ref_tables.keys():
-                    tf_row, tool_filter_flag = findAmctRow(ref_tables['TOOL_FILTER'])
-                    if tool_filter_flag and str(tf_row['TOOL_ALLOWED']).lower() == 'false':
-                        closeRow(mes_table,row_index,comment='ToolFilter:'+tf_row['COMMENTS'])
     
                 if 'LAYERGROUP' in ref_tables.keys():
                     lg_row, layergroup_flag = findAmctRow(ref_tables['LAYERGROUP'])
@@ -377,4 +379,5 @@ for sub_ceid, amct in amct_dic.items():
 
 df_summ.to_csv(outputdir+'final_table.csv', index=False)
 
+print(time.time() - t)
               
