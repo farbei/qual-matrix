@@ -211,15 +211,14 @@ def loadAMCTtables(models_list):
     tables_name, process = amct_classes()
     tables, tables_size = dict(zip(process, [{},{}])), []
     
-    for idx, val in enumerate(models_list):
-        if val != 'X':
-            for fname in glob.glob('*'+val+'*.csv'):
-                process = re.match('(\d{4}|$)', fname).group()
-                table = re.search('('+tables_name+')[^\.]*|$', fname).group()
-                if table in tables_name:
-                    data = pd.read_csv(fname) 
-                    tables_size.append(len(data))
-                    tables[process][table] = wildCards(data)    
+    for val in filter(lambda x: pd.notna(x),models_list):
+        for fname in glob.glob('*'+val+'*.csv'):
+            process = re.match('(\d{4}|$)', fname).group()
+            table = re.search('('+tables_name+')[^\.]*|$', fname).group()
+            if table in tables_name:
+                data = pd.read_csv(fname) 
+                tables_size.append(len(data))
+                tables[process][table] = wildCards(data)    
     return tables, tables_size
    
 
