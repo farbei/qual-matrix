@@ -175,20 +175,7 @@ def amctState(entity,param):
             return 'CH_SIF' if 'SIF' in param[par] else 'CH_POR', None
         if entity[-1] in param[par]:
             return par, param['CH_ASH'] if 'CH_ASH' in param.keys() else None
-    return 'noAmctChamberRef', None        
-            
-#    for par in ['CH_POR','CH_EX','CH_ASH','CH_SIF']:
-#        if par in f3_param.keys() and entity[-1] in f3_param[par]:
-#            if 'CH_ASH' in f3_param.keys() and entity[-1] < '7':
-#                return par, f3_param['CH_ASH']
-#            return par, None 
-#     
-#    for par in ['RECIPE_NAME','RECIPE_CHAMBER'+entity[-1]]:
-#        if par in f3_param.keys() and f3_param[par]:
-#            etcher = 'CH_SIF' if 'SIF' in f3_param[par] else 'CH_POR'
-#            return etcher, None 
-#
-#    return 'noAmctChamberRef', None
+    return 'noAmctChamberRef', None
 
 
 def amct2moduleDic():
