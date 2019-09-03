@@ -155,7 +155,7 @@ def closeRow(i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
 def findAmctRow(amct,ref=['OPERATION','PRODUCT','ROUTE','ENTITY']):
     if amct in ref_tables.keys():
         cols = [c for c in ref if c in ref_tables[amct].columns]
-        for row in ref_tables[amct].iterrows():
+        for _, row in ref_tables[amct].iterrows():
             for col in cols:
                 if re.match(row[col],mes_row[col.lower()]) and col == cols[-1]:
                     return row
