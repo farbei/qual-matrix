@@ -152,33 +152,51 @@ def closeRow(i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
     mes_table.at[i,'close_comment'] += comment+';'
 
   
-def findAmctRow(amct,join_by=['operation','product','route','entity']):
-    cols = [x for x in join_by if x.upper() in amct.columns]
-    for idx, row in amct.iterrows():
-        for col in cols:
-            if re.match(row[col.upper()],mes_row[col]) and col == cols[-1]:
-                return row, True
-    return [], False
-                              
+def findAmctRow(amct,ref=['OPERATION','PRODUCT','ROUTE','ENTITY']):
+#    if amct in ref_tables.keys():
+#        cols = [c for c in ref if c in ref_tables[amct].columns]
+#        for _, row in ref_tables[amct].iterrows():
+#            for col in cols:
+#                if re.match(row[col],mes_row[col.lower()]) and col == cols[-1]:
+#                    return row
+#    return pd.Series([])
+    def mask(row, boly=True):
+        for col in filter(lambda x: x in ref_tables[amct].columns, ref):
+            boly = boly & (re.match(row[col],mes_row[col.lower()]) != None)
+        return boly
+    
+    if amct in ref_tables.keys():
+        row = ref_tables[amct].apply(mask, axis=1).index.values
+        return ref_tables[amct].loc[row[0]] if row.size > 0 else []
+    return pd.Series([])                             
 
 def layerClosed(param):
     layer = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
     return (layer in mes_row.index and mes_row[layer] == 'DOWN')
 
         
-def amctState(entity,f3_param):
-    for par in ['CH_POR','CH_EX','CH_ASH','CH_SIF']:
-        if par in f3_param.keys() and entity[-1] in f3_param[par]:
-            if 'CH_ASH' in f3_param.keys() and entity[-1] < '7':
-                return par, f3_param['CH_ASH']
-            return par, None 
-     
-    for par in ['RECIPE_NAME','RECIPE_CHAMBER'+entity[-1]]:
-        if par in f3_param.keys() and f3_param[par]:
-            etcher = 'CH_SIF' if 'SIF' in f3_param[par] else 'CH_POR'
-            return etcher, None 
-
-    return 'noAmctChamberRef', None
+def amctState(entity,param):
+    states = ['CH_POR','CH_EX','CH_ASH','CH_SIF',
+                  'RECIPE_NAME','RECIPE_CHAMBER'+entity[-1]]
+    for par in filter(lambda x: x in param.keys(), states):
+        if 'RECIPE' in par:
+            return 'CH_SIF' if 'SIF' in param[par] else 'CH_POR', None
+        elif entity[-1] in param[par]:
+            return par, param['CH_ASH'] if 'CH_ASH' in param.keys() else None
+    return 'noAmctChamberRef', None        
+            
+#    for par in ['CH_POR','CH_EX','CH_ASH','CH_SIF']:
+#        if par in f3_param.keys() and entity[-1] in f3_param[par]:
+#            if 'CH_ASH' in f3_param.keys() and entity[-1] < '7':
+#                return par, f3_param['CH_ASH']
+#            return par, None 
+#     
+#    for par in ['RECIPE_NAME','RECIPE_CHAMBER'+entity[-1]]:
+#        if par in f3_param.keys() and f3_param[par]:
+#            etcher = 'CH_SIF' if 'SIF' in f3_param[par] else 'CH_POR'
+#            return etcher, None 
+#
+#    return 'noAmctChamberRef', None
 
 
 def amct2moduleDic():
@@ -297,7 +315,7 @@ for sub_ceid, amct in amct_dic.items():
         if not mes_row['processed'] and mes_row['product'] == 'nan':
             drop_rows.append(row_idx)
             continue
-         
+        
         if sub_ceid in ceid_needed_fix:
             mes_table.at[row_idx,'ceid'] = fixSubCeid(ceid_legend)  
         elif mes_row['ceid'] != mes_row['f28_ceid']:
@@ -314,53 +332,51 @@ for sub_ceid, amct in amct_dic.items():
                         
         ref_tables = tables[mes_row['oper_process'][:4]]
         # TOOL FILTER Table in AMCT
-        tf_row, _ = findAmctRow(ref_tables['TOOL_FILTER'])
+        tf_row = findAmctRow('TOOL_FILTER')
         tf_allowed, tf_comment = tool_allowed(tf_row)
         if not tf_allowed:
             closeRow(row_idx,comment=tf_comment)
                 
-        f3_row, found_amct_row_flag = findAmctRow(ref_tables['F3_SETUP'])
-        if found_amct_row_flag:
-            f3_param = parameterList(f3_row['PARAMETER_LIST'])                
-            chamber_state, ashers = amctState(mes_row['entity'],f3_param)
-            if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
-                closeRow(row_idx,comment=chamber_state)  
-            if isAshersDTP(mes_table,ashers):
-                closeRow(row_idx,comment='NoAshers',state='No Ashers')  
-            if restrictCounter(mes_row,f3_param):
-                closeRow(row_idx,comment='PmCounter')
+        f3_row = findAmctRow('F3_SETUP')
+        if f3_row.empty:
+            drop_rows.append(row_idx)
+            continue
 
-            if 'LAYERGROUP' in ref_tables.keys():
-                lg_row, lg_flag = findAmctRow(ref_tables['LAYERGROUP'])
-                if lg_flag and layerClosed(lg_row['PARAMETER_LIST']): 
-                    closeRow(row_idx,comment='LayerGroup')
-                   
-            if 'OPER_USAGE' in ref_tables.keys():
-                ou_row, ou_flag = findAmctRow(ref_tables['OPER_USAGE'])
-                if ou_flag:
-                    operusage_param = parameterList(ou_row['PARAMETER_LIST'])
-                    if restrictCounter(mes_row,param=operusage_param):
-                        closeRow(row_idx,comment='PmCounter')                        
-                    if cannotFollow(mes_row,param=operusage_param):
-                        closeRow(row_idx,comment='CannotFollowOper')
+        f3_param = parameterList(f3_row['PARAMETER_LIST'])                
+        chamber_state, ashers = amctState(mes_row['entity'],f3_param)
+        if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
+            closeRow(row_idx,comment=chamber_state)  
+        if isAshersDTP(mes_table,ashers):
+            closeRow(row_idx,comment='NoAshers',state='No Ashers')  
+        if restrictCounter(mes_row,f3_param):
+            closeRow(row_idx,comment='PmCounter')
+
+        lg_row = findAmctRow('LAYERGROUP')
+        if not lg_row.empty and layerClosed(lg_row['PARAMETER_LIST']): 
+            closeRow(row_idx,comment='LayerGroup')
+               
+        ou_row = findAmctRow('OPER_USAGE')
+        if not ou_row.empty:
+            operusage_param = parameterList(ou_row['PARAMETER_LIST'])
+            if restrictCounter(mes_row,param=operusage_param):
+                closeRow(row_idx,comment='PmCounter')                        
+            if cannotFollow(mes_row,param=operusage_param):
+                closeRow(row_idx,comment='CannotFollowOper')
+                        
+        co_row = findAmctRow('CASCADE_OPER')
+        if not co_row.empty:
+            cascade_param = parameterList(co_row['PARAMETER_LIST'])
+            if cannotFollow(mes_row,param=cascade_param):
+                closeRow(row_idx,comment='CannotFollowOper')                        
+            if minCondition(mes_row,param=cascade_param):
+                closeRow(row_idx,comment='NeedCond')   
+            if maxCascade(mes_row,param=cascade_param):
+                closeRow(row_idx,comment='MaxCascade')
+                        
+        if 'fsui_rules' in ref_tables.keys():
+            pass # Need to do something!!!
                             
-            if 'CASCADE_OPER' in ref_tables.keys():
-                co_row, co_flag = findAmctRow(ref_tables['CASCADE_OPER'])
-                if co_flag:
-                    cascade_param = parameterList(co_row['PARAMETER_LIST'])
-                    if cannotFollow(mes_row,param=cascade_param):
-                        closeRow(row_idx,comment='CannotFollowOper')                        
-                    if minCondition(mes_row,param=cascade_param):
-                        closeRow(row_idx,comment='NeedCond')   
-                    if maxCascade(mes_row,param=cascade_param):
-                        closeRow(row_idx,comment='MaxCascade')
-                            
-            if 'fsui_rules' in ref_tables.keys():
-                pass # Need to do something!!!
-                            
-        if not found_amct_row_flag or (
-                not mes_row['processed'] 
-                and mes_table['open'][row_idx] != 'Up & Open'):
+        if not mes_row['processed'] and mes_table['open'][row_idx] != 'Up&Open':
             drop_rows.append(row_idx)
     
     
