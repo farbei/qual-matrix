@@ -186,20 +186,15 @@ def amct2moduleDic():
 
 def loadMEStable(ceid):
     try:
-        data = pd.read_csv(sub_ceid+'_MESTABLE.csv')
+        df = pd.read_csv(sub_ceid+'_MESTABLE.csv')
+        df['open'], df['close_comment'] = 'Up&Open', ''
+        col2str = ['operation','oper_process','product','route','main_moqr']
+        df[col2str] = df[col2str].astype('str')
+        df.update(df.select_dtypes(include=[np.number]).fillna(0))
+        return df.fillna('.'), len(df)   
     except OSError as e:
         print(e)
-        return [], 0
-        
-    data['open'], data['close_comment'] = 'Up&Open', ''
-     
-    n_rows = len(data)
-    if n_rows > 0:
-        col2str = ['operation','oper_process','product','route','main_moqr']
-        data[col2str] = data[col2str].astype('str')
-        data.update(data.select_dtypes(include=[np.number]).fillna(0))
-        data.fillna('.', inplace=True)    
-    return data, n_rows         
+        return [], 0         
 
 
 def loadAMCTtables(models_list):
