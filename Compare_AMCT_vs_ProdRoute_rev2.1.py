@@ -153,22 +153,14 @@ def closeRow(i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
 
   
 def findAmctRow(amct,ref=['OPERATION','PRODUCT','ROUTE','ENTITY']):
-#    if amct in ref_tables.keys():
-#        cols = [c for c in ref if c in ref_tables[amct].columns]
-#        for _, row in ref_tables[amct].iterrows():
-#            for col in cols:
-#                if re.match(row[col],mes_row[col.lower()]) and col == cols[-1]:
-#                    return row
-#    return pd.Series([])
-    def mask(row, boly=True):
-        for col in filter(lambda x: x in ref_tables[amct].columns, ref):
-            boly = boly & (re.match(row[col],mes_row[col.lower()]) != None)
-        return boly
-    
     if amct in ref_tables.keys():
-        row = ref_tables[amct].apply(mask, axis=1).index.values
-        return ref_tables[amct].loc[row[0]] if row.size > 0 else []
-    return pd.Series([])                             
+        cols = [c for c in ref if c in ref_tables[amct].columns]
+        for row in ref_tables[amct].iterrows():
+            for col in cols:
+                if re.match(row[col],mes_row[col.lower()]) and col == cols[-1]:
+                    return row
+    return pd.Series([])
+                          
 
 def layerClosed(param):
     layer = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
@@ -181,7 +173,7 @@ def amctState(entity,param):
     for par in filter(lambda x: x in param.keys(), states):
         if 'RECIPE' in par:
             return 'CH_SIF' if 'SIF' in param[par] else 'CH_POR', None
-        elif entity[-1] in param[par]:
+        if entity[-1] in param[par]:
             return par, param['CH_ASH'] if 'CH_ASH' in param.keys() else None
     return 'noAmctChamberRef', None        
             
