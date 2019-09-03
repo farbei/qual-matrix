@@ -233,10 +233,13 @@ def loadSubCeidLegend():
 
 # In Case the 'Layer Allowed' attribute reflect to sub CEID
 def fixSubCeid(data): 
-    for index, row in data.loc[data['module']==sub_ceid].iterrows():
-        if mes_row[row['by']] == row['value']:
-            return row['new_ceid']
-    return mes_row['ceid']
+    df = data.loc[data['module']==sub_ceid]
+    new_ceid = df.loc[mes_row[df['by']].values==df['value'],'new_ceid']
+    return new_ceid.values[0] if not new_ceid.empty else mes_row['ceid']   
+#    for index, row in data.loc[data['module']==sub_ceid].iterrows():
+#        if mes_row[row['by']] == row['value']:
+#            return row['new_ceid']
+#    return mes_row['ceid']
         
 
 def isAshersDTP(df,ash):
@@ -299,7 +302,7 @@ for sub_ceid, amct in amct_dic.items():
             mes_table.at[row_idx,'ceid'] = fixSubCeid(ceid_legend)  
         elif mes_row['ceid'] != mes_row['f28_ceid']:
             mes_table.at[row_idx,'ceid'] = mes_row['f28_ceid']
-            
+
         restricted = restrictMoq(mes_row) 
         if restricted:
             closeRow(row_idx,comment=restricted)
