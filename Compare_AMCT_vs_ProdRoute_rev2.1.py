@@ -19,7 +19,6 @@ workdir, outputdir = dirs_address()
 
 
 def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
-    df = df.drop(columns=df.columns[df.isnull().all()])
     cols = [c for c in columns if c in df.columns]
     wc = lambda c: c.str.replace('*','.*').str.replace('?','.')
     df[cols] = df[cols].astype('str').apply(wc)
@@ -216,6 +215,7 @@ def loadAMCTtables(models_list):
             table = re.search('('+tables_name+')[^\.]*|$', fname).group()
             if table in tables_name:
                 data = pd.read_csv(fname) 
+                data = data.drop(columns=data.columns[data.isnull().all()])
                 tables_size.append(len(data))
                 tables[process][table] = wildCards(data)    
     return tables, tables_size
@@ -386,5 +386,5 @@ for sub_ceid, amct in amct_dic.items():
     
 df_summ.to_csv(outputdir+'final_table.csv', index=False)
 
-print(time.time() - t)
+
               
