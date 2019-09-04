@@ -285,73 +285,73 @@ for sub_ceid, amct in amct_dic.items():
         continue
     
     drop_rows = []
-    for row_idx, mes_row in mes_table.iterrows():
+    for idx, mes_row in mes_table.iterrows():
         if not mes_row['processed'] and mes_row['product'] == 'nan':
-            drop_rows.append(row_idx)
+            drop_rows.append(idx)
             continue
         
         if sub_ceid in ceid_needed_fix:
-            mes_table.at[row_idx,'ceid'] = fixSubCeid(ceid_legend)  
+            mes_table.at[idx,'ceid'] = fixSubCeid(ceid_legend)  
         elif mes_row['ceid'] != mes_row['f28_ceid']:
-            mes_table.at[row_idx,'ceid'] = mes_row['f28_ceid']
+            mes_table.at[idx,'ceid'] = mes_row['f28_ceid']
 
         restricted = restrictMoq(mes_row) 
         if restricted:
-            closeRow(row_idx,comment=restricted)
+            closeRow(idx,comment=restricted)
                     
         if mes_row['main_availability'] == 'Down':
-            closeRow(row_idx,comment='MainDTP',state='Down')
+            closeRow(idx,comment='MainDTP',state='Down')
         if mes_row['sub_availability'] == 'Down':
-            closeRow(row_idx,comment='ChamberDTP',state='Down')
+            closeRow(idx,comment='ChamberDTP',state='Down')
                         
         ref_tables = tables[mes_row['oper_process'][:4]]
         # TOOL FILTER Table in AMCT
         tf_row = findAmctRow('TOOL_FILTER')
         tf_allowed, tf_comment = tool_allowed(tf_row)
         if not tf_allowed:
-            closeRow(row_idx,comment=tf_comment)
+            closeRow(idx,comment=tf_comment)
                 
         f3_row = findAmctRow('F3_SETUP')
         if f3_row is None:
-            drop_rows.append(row_idx)
+            drop_rows.append(idx)
             continue
 
         f3_param = parameterList(f3_row['PARAMETER_LIST'])                
         chamber_state, ashers = amctState(mes_row['entity'],f3_param)
         if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
-            closeRow(row_idx,comment=chamber_state)  
+            closeRow(idx,comment=chamber_state)  
         if isAshersDTP(mes_table,ashers):
-            closeRow(row_idx,comment='NoAshers',state='No Ashers')  
+            closeRow(idx,comment='NoAshers',state='No Ashers')  
         if restrictCounter(mes_row,f3_param):
-            closeRow(row_idx,comment='PmCounter')
+            closeRow(idx,comment='PmCounter')
 
         lg_row = findAmctRow('LAYERGROUP')
         if lg_row is not None and layerClosed(lg_row['PARAMETER_LIST']): 
-            closeRow(row_idx,comment='LayerGroup')
+            closeRow(idx,comment='LayerGroup')
                
         ou_row = findAmctRow('OPER_USAGE')
         if ou_row is not None:
             operusage_param = parameterList(ou_row['PARAMETER_LIST'])
             if restrictCounter(mes_row,param=operusage_param):
-                closeRow(row_idx,comment='PmCounter')                        
+                closeRow(idx,comment='PmCounter')                        
             if cannotFollow(mes_row,param=operusage_param):
-                closeRow(row_idx,comment='CannotFollowOper')
+                closeRow(idx,comment='CannotFollowOper')
                         
         co_row = findAmctRow('CASCADE_OPER')
         if co_row is not None:
             cascade_param = parameterList(co_row['PARAMETER_LIST'])
             if cannotFollow(mes_row,param=cascade_param):
-                closeRow(row_idx,comment='CannotFollowOper')                        
+                closeRow(idx,comment='CannotFollowOper')                        
             if minCondition(mes_row,param=cascade_param):
-                closeRow(row_idx,comment='NeedCond')   
+                closeRow(idx,comment='NeedCond')   
             if maxCascade(mes_row,param=cascade_param):
-                closeRow(row_idx,comment='MaxCascade')
+                closeRow(idx,comment='MaxCascade')
                         
         if 'fsui_rules' in ref_tables.keys():
             pass # Need to do something!!!
                             
-        if not mes_row['processed'] and mes_table['open'][row_idx] != 'Up&Open':
-            drop_rows.append(row_idx)
+        if not mes_row['processed'] and mes_table['open'][idx] != 'Up&Open':
+            drop_rows.append(idx)
     
     
     need_columns = ['ceid','operation','oper_short_desc','product','route',
