@@ -159,7 +159,7 @@ def findAmctRow(amct,ref=['OPERATION','PRODUCT','ROUTE','ENTITY']):
             for col in cols:
                 if re.match(row[col],mes_row[col.lower()]) and col == cols[-1]:
                     return row
-    return pd.Series([])
+    return None
                           
 
 def layerClosed(param):
@@ -247,7 +247,7 @@ def isAshersDTP(df,ash):
 
 
 def tool_allowed(tf_row):
-    if tf_row.empty:
+    if tf_row is None:
         return False, 'TF=noRef'
     comment = tf_row['COMMENTS'] if 'COMMENTS' in tf_row.index else 'TF'
     return str(tf_row['TOOL_ALLOWED']).upper() == 'TRUE', comment
@@ -312,7 +312,7 @@ for sub_ceid, amct in amct_dic.items():
             closeRow(row_idx,comment=tf_comment)
                 
         f3_row = findAmctRow('F3_SETUP')
-        if f3_row.empty:
+        if f3_row is None:
             drop_rows.append(row_idx)
             continue
 
@@ -326,11 +326,11 @@ for sub_ceid, amct in amct_dic.items():
             closeRow(row_idx,comment='PmCounter')
 
         lg_row = findAmctRow('LAYERGROUP')
-        if not lg_row.empty and layerClosed(lg_row['PARAMETER_LIST']): 
+        if lg_row is not None and layerClosed(lg_row['PARAMETER_LIST']): 
             closeRow(row_idx,comment='LayerGroup')
                
         ou_row = findAmctRow('OPER_USAGE')
-        if not ou_row.empty:
+        if ou_row is not None:
             operusage_param = parameterList(ou_row['PARAMETER_LIST'])
             if restrictCounter(mes_row,param=operusage_param):
                 closeRow(row_idx,comment='PmCounter')                        
@@ -338,7 +338,7 @@ for sub_ceid, amct in amct_dic.items():
                 closeRow(row_idx,comment='CannotFollowOper')
                         
         co_row = findAmctRow('CASCADE_OPER')
-        if not co_row.empty:
+        if co_row is not None:
             cascade_param = parameterList(co_row['PARAMETER_LIST'])
             if cannotFollow(mes_row,param=cascade_param):
                 closeRow(row_idx,comment='CannotFollowOper')                        
