@@ -364,7 +364,7 @@ for sub_ceid, amct in amct_dic.items():
     print(sub_ceid,'  ',sub_ceid_list,'  ', len(df_post))
     for sc in sub_ceid_list:
         df_sc = df_post[df_post['ceid']==sc]
-        df_sc = df_sc.sort_values(by=['entity','product','route','operation'])
+        df_sc = df_sc.sort_values(by=['operation','product','route','entity'])
         df_summ = summarizeOperState(df_sc,df_summ)
         df_sc.to_csv(outputdir+sc+'_rev4.csv', index=False)
     
