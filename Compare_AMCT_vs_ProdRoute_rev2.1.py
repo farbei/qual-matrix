@@ -256,6 +256,8 @@ def tool_allowed(tf_row):
 
         
 def summarizeOperState(df,df_summ):
+    if not all(df['entity'].str.endswith(('7','8'))):
+        df = df[df['entity'].str.endswith(('7','8'))==False]
     idx = set(df.columns) - set(['entity','close_comment','open'])
     table = df.pivot_table(values='entity', index=idx, columns=['open'],
                            aggfunc={'entity': 'count'}).reset_index()
@@ -323,7 +325,7 @@ for sub_ceid, amct in amct_dic.items():
         if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
             closeRow(row_idx,comment=chamber_state)  
         if isAshersDTP(mes_table,ashers):
-            closeRow(row_idx,comment='NoAshers',state='No Ashers')  
+            closeRow(row_idx,comment='NoAshers',state='NoAsh')  
         if restrictCounter(mes_row,f3_param):
             closeRow(row_idx,comment='PmCounter')
 
