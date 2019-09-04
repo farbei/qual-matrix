@@ -254,8 +254,8 @@ def tool_allowed(tf_row):
 
         
 def summarizeOperState(df,df_summ):
-    idx = set(df.columns) - set(['entity','close_comment','open'])
-    table = df.pivot_table(values='entity', index=idx, columns=['open'],
+    indexes = set(df.columns) - set(['entity','close_comment','open'])
+    table = df.pivot_table(values='entity', index=indexes, columns=['open'],
                            aggfunc={'entity': 'count'}).reset_index()
     
     if 'Up&Open' in table.columns:
