@@ -230,10 +230,6 @@ def fixSubCeid(data):
     df = data.loc[data['module']==sub_ceid]
     new_ceid = df.loc[mes_row[df['by']].values==df['value'],'new_ceid']
     return new_ceid.values[0] if not new_ceid.empty else mes_row['ceid']   
-#    for index, row in data.loc[data['module']==sub_ceid].iterrows():
-#        if mes_row[row['by']] == row['value']:
-#            return row['new_ceid']
-#    return mes_row['ceid']
         
 
 def isAshersDTP(df,ash):
@@ -254,7 +250,19 @@ def tool_allowed(tf_row):
     comment = tf_row['COMMENTS'] if 'COMMENTS' in tf_row.index else 'TF'
     return str(tf_row['TOOL_ALLOWED']).upper() == 'TRUE', comment
 
+
+def group_chambers(entity):
+    for _, row in ref_tables['CHAMBER_GROUPS'].iterrows():
+        param = parameterList(row['PARAMETER_LIST'])
+        if re.match(row['ENTITY'], entity):
+            for pair in param['GROUPS'].split(','):
+                if entity[-1] in pair:                    
+                   paired = entity[:-1]+pair.strip(entity[-1])
+                   pair_rows = mes_table.loc[mes_table['entity']==paired]
+                   return pair_rows['sub_availability'].tolist()[0]
+    return 'NoPair'           
         
+  
 def summarizeOperState(df,df_summ):
     if not all(df['entity'].str.endswith(('7','8'))):
         df = df[df['entity'].str.endswith(('7','8'))==False]
@@ -281,7 +289,8 @@ ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
 for sub_ceid, amct in amct_dic.items():
-
+    if sub_ceid != "TAOco":
+        continue
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
     
@@ -350,14 +359,18 @@ for sub_ceid, amct in amct_dic.items():
                 closeRow(row_idx,comment='NeedCond')   
             if maxCascade(mes_row,param=cascade_param):
                 closeRow(row_idx,comment='MaxCascade')
-                        
+        
+        if 'CHAMBER_GROUPS' in ref_tables.keys():
+            if group_chambers(mes_row['entity']) == 'Down':
+                closeRow(row_idx,comment='PairIsDown')
+                
         if 'fsui_rules' in ref_tables.keys():
             pass # Need to do something!!!
                             
         if not mes_row['processed'] and mes_table['open'][row_idx] != 'Up&Open':
             drop_rows.append(row_idx)
-    
-    
+        
+        
     need_columns = ['ceid','operation','oper_short_desc','product','route',
                     'LA24','entity','open','close_comment','Inv','LA6','LA12']   
     df_post = mes_table[need_columns].drop(index=drop_rows)
