@@ -85,7 +85,7 @@ def minCondition(param):
     return False
 
 
-def restrictCounter(mes_row,param):
+def restrictCounter(param):
     if not re.search('UDA|RANGE',str(param.keys())):
         return False
     uda = re.search('[^\']*UDA[^\']*|$',str(param.keys())).group()
@@ -116,7 +116,7 @@ def restrictCounter(mes_row,param):
         return False
 
 
-def restrictCounter2(mes_row,param):
+def restrictCounter2(param):
 
     if 'MAX_RANGE_INJECTION' in param.keys():
         uda = ['INJECTOR','UPPERWALL']
@@ -289,8 +289,7 @@ ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
 for sub_ceid, amct in amct_dic.items():
-    if sub_ceid != 'ONTxx':
-        continue
+
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
     
@@ -331,11 +330,11 @@ for sub_ceid, amct in amct_dic.items():
 
         f3_param = parameterList(f3_row['PARAMETER_LIST'])                
         chamber_state, ashers = amctState(mes_row['entity'],f3_param)
-        if chamber_state not in ['CH_POR','CH_EX','CH_ASH']:
+        if chamber_state == 'CH_SIF':
             closeRow(row_idx,comment=chamber_state)  
         if isAshersDTP(mes_table,ashers):
             closeRow(row_idx,comment='NoAshers',state='NoAsh')  
-        if restrictCounter(mes_row,f3_param):
+        if restrictCounter(f3_param):
             closeRow(row_idx,comment='PmCounter')
 
         lg_row = findAmctRow('LAYERGROUP')
@@ -345,9 +344,9 @@ for sub_ceid, amct in amct_dic.items():
         ou_row = findAmctRow('OPER_USAGE')
         if ou_row is not None:
             operusage_param = parameterList(ou_row['PARAMETER_LIST'])
-            if restrictCounter(mes_row,param=operusage_param):
+            if restrictCounter(operusage_param):
                 closeRow(row_idx,comment='PmCounter')                        
-            if cannotFollow(mes_row,param=operusage_param):
+            if cannotFollow(param=operusage_param):
                 closeRow(row_idx,comment='CannotFollowOper')
                         
         co_row = findAmctRow('CASCADE_OPER')
