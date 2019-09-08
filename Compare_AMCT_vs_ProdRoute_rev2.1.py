@@ -32,7 +32,7 @@ def restrictMoq(mes):
     comment = []
     uncomment_string = re.sub(r'%[^%]*%','',mes['main_moqr'])
     for field in uncomment_string.strip('/').split('/'):
-        if re.match(r'\d+',field) and mes['operation'] == field:
+        if mes['operation'] == field:
             comment.append('oper_rmoq')
         if field.endswith('*'):
             field = field.replace('*','.*').replace('?','.')
