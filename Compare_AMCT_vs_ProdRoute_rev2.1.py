@@ -210,10 +210,17 @@ def loadAMCTtables(models_list):
             if table in tables_name:
                 data = pd.read_csv(fname) 
                 data = data.drop(columns=data.columns[data.isnull().all()])
+#                data = dict_param(data)
                 tables_size.append(len(data))
                 tables[process][table] = wildCards(data)    
     return tables, tables_size
    
+
+def dict_param(df):
+    if 'PARAMETER_LIST' in df.columns:
+        df['params'] = df['PARAMETER_LIST'].apply(lambda c: parameterList(c))
+    return df
+
 
 def parameterList(param):
     return dict(tuple(p.split('=',1)) for p in param.split(';') if '=' in p)
