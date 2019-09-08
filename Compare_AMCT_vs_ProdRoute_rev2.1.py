@@ -43,7 +43,7 @@ def restrictMoq(mes):
 
 
 # Restrict L8 to run after limit operations
-def cannotFollow(mes_row,param):
+def cannotFollow(param):
     if 'CANNOT_FOLLOW_OPER' in param.keys():
         return mesUDA('L78GENERICUDA2') in param['CANNOT_FOLLOW_OPER']    
     return False     
@@ -68,7 +68,7 @@ def mesUDA2(uda):
 
    
 # Check for max cascading wafers allowed to run from operation     
-def maxCascade(mes_row,param):
+def maxCascade(param):
     if 'UDA' in param.keys() and 'MAX_WAFER_COUNT' in param.keys():
         uda_value = mesUDA(param['UDA'])
         if uda_value != 'nan':
@@ -77,7 +77,7 @@ def maxCascade(mes_row,param):
 
 
 # Check if needed condition ran before operation
-def minCondition(mes_row,param):
+def minCondition(param):
     if 'UDA' in param.keys() and 'MIN_WAFER_COUNT' in param.keys():
         uda_value = mesUDA(param['UDA'])
         if uda_value != 'nan':
