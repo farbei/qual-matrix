@@ -66,7 +66,7 @@ def mesUDA2(uda):
     attr = re.search('[^\']*'+uda+'[^\']*',str(mes_row.index))
     return (uda,str(mes_row[attr.group()])) if attr else (uda,'nan')
 
-   
+
 # Check for max cascading wafers allowed to run from operation     
 def maxCascade(param):
     if 'UDA' in param.keys() and 'MAX_WAFER_COUNT' in param.keys():
@@ -289,7 +289,8 @@ ceid_needed_fix, ceid_legend = loadSubCeidLegend()
 df_summ = pd.DataFrame({'new' : []})
 
 for sub_ceid, amct in amct_dic.items():
-
+    if sub_ceid != 'ONTxx':
+        continue
     tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
     
@@ -352,11 +353,11 @@ for sub_ceid, amct in amct_dic.items():
         co_row = findAmctRow('CASCADE_OPER')
         if co_row is not None:
             cascade_param = parameterList(co_row['PARAMETER_LIST'])
-            if cannotFollow(mes_row,param=cascade_param):
+            if cannotFollow(cascade_param):
                 closeRow(row_idx,comment='CannotFollowOper')                        
-            if minCondition(mes_row,param=cascade_param):
+            if minCondition(cascade_param):
                 closeRow(row_idx,comment='NeedCond')   
-            if maxCascade(mes_row,param=cascade_param):
+            if maxCascade(cascade_param):
                 closeRow(row_idx,comment='MaxCascade')
         
         if 'CHAMBER_GROUPS' in ref_tables.keys():
