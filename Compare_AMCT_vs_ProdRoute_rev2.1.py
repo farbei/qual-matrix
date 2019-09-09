@@ -223,7 +223,7 @@ def loadAMCTtables(models_list):
 
 def dict_param(df):
     if 'PARAMETER_LIST' in df.columns:
-        df['params'] = df['PARAMETER_LIST'].apply(lambda c: parameterList(c))
+        df['PARAMS'] = df['PARAMETER_LIST'].apply(lambda c: parameterList(c))
     return df
 
 
@@ -265,7 +265,7 @@ def tool_allowed(tf_row):
 
 def group_chambers(entity):
     for _, row in ref_tables['CHAMBER_GROUPS'].iterrows():
-        param = parameterList(row['PARAMETER_LIST'])
+        param = row['PARAMS'] #parameterList(row['PARAMETER_LIST'])
         if re.match(row['ENTITY'], entity):
             for pair in param['GROUPS'].split(','):
                 if entity[-1] in pair:                    
@@ -340,7 +340,7 @@ for sub_ceid, amct in amct_dic.items():
             drop_rows.append(row_idx)
             continue
 
-        f3_param = parameterList(f3_row['PARAMETER_LIST'])                
+        f3_param = f3_row['PARAMS'] #parameterList(f3_row['PARAMETER_LIST'])                
         chamber_state, ashers = amctState(mes_row['entity'],f3_param)
         if chamber_state == 'CH_SIF':
             closeRow(row_idx,comment=chamber_state)  
@@ -350,12 +350,12 @@ for sub_ceid, amct in amct_dic.items():
             closeRow(row_idx,comment='PmCounter')
 
         lg_row = findAmctRow('LAYERGROUP')
-        if lg_row is not None and layerClosed(lg_row['PARAMETER_LIST']): 
+        if lg_row is not None and layerClosed(lg_row['PARAMS']): #'PARAMETER_LIST' 
             closeRow(row_idx,comment='LayerGroup')
                
         ou_row = findAmctRow('OPER_USAGE')
         if ou_row is not None:
-            operusage_param = parameterList(ou_row['PARAMETER_LIST'])
+            operusage_param = ou_row['PARAMS'] #parameterList(ou_row['PARAMETER_LIST'])
             if restrictCounter(operusage_param):
                 closeRow(row_idx,comment='PmCounter')                        
             if cannotFollow(param=operusage_param):
@@ -363,7 +363,7 @@ for sub_ceid, amct in amct_dic.items():
                         
         co_row = findAmctRow('CASCADE_OPER')
         if co_row is not None:
-            cascade_param = parameterList(co_row['PARAMETER_LIST'])
+            cascade_param = co_row['PARAMS'] #parameterList(co_row['PARAMETER_LIST'])
             if cannotFollow(cascade_param):
                 closeRow(row_idx,comment='CannotFollowOper')                        
             if minCondition(cascade_param):
