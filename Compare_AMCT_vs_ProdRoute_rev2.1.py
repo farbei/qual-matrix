@@ -25,6 +25,10 @@ def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
     return df
 
 
+def wild_cards(col):
+    return col.str.replace('*','.*').str.replace('?','.')
+
+
 def restrictMoq(mes):
     if mes['main_moqr'] in ['nan','EMPTY']:
         return ''
@@ -210,9 +214,10 @@ def loadAMCTtables(models_list):
             if table in tables_name:
                 data = pd.read_csv(fname) 
                 data = data.drop(columns=data.columns[data.isnull().all()])
-#                data = dict_param(data)
+                data = data.astype('str').apply(wild_cards)
+                data = dict_param(data)
                 tables_size.append(len(data))
-                tables[process][table] = wildCards(data)    
+                tables[process][table] = data
     return tables, tables_size
    
 
