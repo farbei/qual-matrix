@@ -171,7 +171,6 @@ def findAmctRow(amct,ref=['OPERATION','PRODUCT','ROUTE','ENTITY']):
 def layerClosed(param, layer='LAYERGROUP'):
 #    layer = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
     layer += param[layer] if layer in param.keys() else ''
-    print(layer)
     return (layer in mes_row.index and mes_row[layer] == 'DOWN')
 
         
@@ -342,13 +341,13 @@ for sub_ceid, amct in amct_dic.items():
             drop_rows.append(row_idx)
             continue
 
-        f3_param = f3_row['PARAMS'] #parameterList(f3_row['PARAMETER_LIST'])                
-        chamber_state, ashers = amctState(mes_row['entity'],f3_param)
+        #f3_param = f3_row['PARAMS'] #parameterList(f3_row['PARAMETER_LIST'])                
+        chamber_state, ashers = amctState(mes_row.entity,f3_row['PARAMS'])
         if chamber_state == 'CH_SIF':
             closeRow(row_idx,comment=chamber_state)  
         if isAshersDTP(mes_table,ashers):
             closeRow(row_idx,comment='NoAshers',state='NoAsh')  
-        if restrictCounter(f3_param):
+        if restrictCounter(f3_row['PARAMS']):
             closeRow(row_idx,comment='PmCounter')
 
         lg_row = findAmctRow('LAYERGROUP')
@@ -357,24 +356,24 @@ for sub_ceid, amct in amct_dic.items():
                
         ou_row = findAmctRow('OPER_USAGE')
         if ou_row is not None:
-            operusage_param = ou_row['PARAMS'] #parameterList(ou_row['PARAMETER_LIST'])
-            if restrictCounter(operusage_param):
+            #operusage_param = ou_row['PARAMS'] #parameterList(ou_row['PARAMETER_LIST'])
+            if restrictCounter(ou_row['PARAMS']):
                 closeRow(row_idx,comment='PmCounter')                        
-            if cannotFollow(param=operusage_param):
+            if cannotFollow(ou_row['PARAMS']):
                 closeRow(row_idx,comment='CannotFollowOper')
                         
         co_row = findAmctRow('CASCADE_OPER')
         if co_row is not None:
-            cascade_param = co_row['PARAMS'] #parameterList(co_row['PARAMETER_LIST'])
-            if cannotFollow(cascade_param):
+            #cascade_param = co_row['PARAMS'] #parameterList(co_row['PARAMETER_LIST'])
+            if cannotFollow(co_row['PARAMS']):
                 closeRow(row_idx,comment='CannotFollowOper')                        
-            if minCondition(cascade_param):
+            if minCondition(co_row['PARAMS']):
                 closeRow(row_idx,comment='NeedCond')   
-            if maxCascade(cascade_param):
+            if maxCascade(co_row['PARAMS']):
                 closeRow(row_idx,comment='MaxCascade')
         
         if 'CHAMBER_GROUPS' in ref_tables.keys():
-            if group_chambers(mes_row['entity']) == 'Down':
+            if group_chambers(mes_row.entity) == 'Down':
                 closeRow(row_idx,comment='PairIsDown')
                 
         if 'fsui_rules' in ref_tables.keys():
