@@ -168,8 +168,10 @@ def findAmctRow(amct,ref=['OPERATION','PRODUCT','ROUTE','ENTITY']):
     return None
                           
 
-def layerClosed(param):
-    layer = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
+def layerClosed(param, layer='LAYERGROUP'):
+#    layer = re.search('LAYERGROUP[^;]*|$',param).group().replace('=','') 
+    layer += param[layer] if layer in param.keys() else ''
+    print(layer)
     return (layer in mes_row.index and mes_row[layer] == 'DOWN')
 
         
