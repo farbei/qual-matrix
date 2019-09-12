@@ -341,7 +341,6 @@ for sub_ceid, amct in amct_dic.items():
             drop_rows.append(idx)
             continue
 
-        #f3_param = f3_row['PARAMS'] #parameterList(f3_row['PARAMETER_LIST'])                
         chamber_state, ashers = amctState(mes_row.entity,f3_row['PARAMS'])
         if chamber_state == 'CH_SIF':
             closeRow(idx,comment=chamber_state)  
@@ -351,12 +350,11 @@ for sub_ceid, amct in amct_dic.items():
             closeRow(idx,comment='PmCounter')
 
         lg_row = findAmctRow('LAYERGROUP')
-        if lg_row is not None and layerClosed(lg_row['PARAMS']): #'PARAMETER_LIST' 
+        if lg_row is not None and layerClosed(lg_row['PARAMS']):
             closeRow(idx,comment='LayerGroup')
                
         ou_row = findAmctRow('OPER_USAGE')
         if ou_row is not None:
-            #operusage_param = ou_row['PARAMS'] #parameterList(ou_row['PARAMETER_LIST'])
             if restrictCounter(ou_row['PARAMS']):
                 closeRow(idx,comment='PmCounter')                        
             if cannotFollow(ou_row['PARAMS']):
@@ -364,7 +362,6 @@ for sub_ceid, amct in amct_dic.items():
                         
         co_row = findAmctRow('CASCADE_OPER')
         if co_row is not None:
-            #cascade_param = co_row['PARAMS'] #parameterList(co_row['PARAMETER_LIST'])
             if cannotFollow(co_row['PARAMS']):
                 closeRow(idx,comment='CannotFollowOper')                        
             if minCondition(co_row['PARAMS']):
@@ -377,7 +374,7 @@ for sub_ceid, amct in amct_dic.items():
                 closeRow(idx,comment='PairIsDown')
                 
         if 'fsui_rules' in ref_tables.keys():
-            pass # Need to do something!!!
+            pass
                             
         if not mes_row['processed'] and mes_table['open'][idx] != 'Up&Open':
             drop_rows.append(idx)
