@@ -284,7 +284,7 @@ def summarizeOperState(df,df_summ):
                            aggfunc={'entity': 'count'}).reset_index()
     
     if 'Up&Open' in table.columns:
-        table = table.rename(columns={'Up&Open': 'entity_'})
+        table.rename(columns={'Up&Open': 'entity_'}, inplace=True)
     else:
         table['entity_'] = 0
     grouped = table.groupby(['ceid','operation','oper_short_desc']
@@ -292,7 +292,7 @@ def summarizeOperState(df,df_summ):
     df_out = grouped.agg({'entity_':['min','max'],
                           'Inv':'sum','LA6':'sum','LA12':'sum','LA24':'sum'})
     df_out.columns = ["".join(x) for x in df_out.columns.ravel()]
-
+    df_out.fillna(0, inplace=True)
     return df_out if df_summ.empty else pd.concat([df_summ,df_out])
 
 ################################################################
