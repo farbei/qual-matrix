@@ -10,23 +10,24 @@ import glob
 import re
 import pandas as pd 
 import numpy as np
-from datetime import datetime as dt
+#from datetime import datetime as dt
 from script_setting import dirs_address, amct_classes
-import time
-t = time.time()
+from helper import param_dict, wild_cards, print_error, timeit
+#import time
+#t = time.time()
 
 workdir, outputdir = dirs_address()
 
 
-def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
-    cols = [c for c in columns if c in df.columns]
-    wc = lambda c: c.str.replace('*','.*').str.replace('?','.')
-    df[cols] = df[cols].astype('str').apply(wc)
-    return df
+#def wildCards(df,columns=['OPERATION','ENTITY','PRODUCT','ROUTE']):
+#    cols = [c for c in columns if c in df.columns]
+#    wc = lambda c: c.str.replace('*','.*').str.replace('?','.')
+#    df[cols] = df[cols].astype('str').apply(wc)
+#    return df
 
 
-def wild_cards(col):
-    return col.str.replace('*','.*').str.replace('?','.')
+#def wild_cards(col):
+#    return col.str.replace('*','.*').str.replace('?','.')
 
 
 def restrictMoq(mes):
@@ -198,8 +199,8 @@ def loadMEStable(ceid):
         df[col2str] = df[col2str].astype('str')
         df.update(df.select_dtypes(include=[np.number]).fillna(0))
         return df.fillna('.'), len(df)   
-    except OSError as e:
-        print(e)
+    except OSError as err:
+        print_error(err)
         return [], 0         
 
 
@@ -216,7 +217,7 @@ def loadAMCTtables(models_list):
                 data = data.drop(columns=data.columns[data.isnull().all()])
                 data = data.astype('str').apply(wild_cards)
                 if 'PARAMETER_LIST' in data.columns:
-                    data['PARAMS'] = data['PARAMETER_LIST'].apply(param_list)
+                    data['PARAMS'] = data['PARAMETER_LIST'].apply(param_dict)
                 tables_size.append(len(data))
                 tables[process][table] = data
     return tables, tables_size
@@ -227,8 +228,8 @@ def loadAMCTtables(models_list):
 #        df['PARAMS'] = df['PARAMETER_LIST'].apply(parameterList)
 
 
-def param_list(param):
-    return dict(tuple(p.split('=',1)) for p in param.split(';') if '=' in p)
+#def param_list(param):
+#    return dict(tuple(p.split('=',1)) for p in param.split(';') if '=' in p)
 
 
 def loadSubCeidLegend():
@@ -306,6 +307,7 @@ for sub_ceid, amct in amct_dic.items():
     mes_table, mes_size = loadMEStable(sub_ceid)
     
     if mes_size == 0:
+        print_error(sub_ceid + ': mes_table Missing!')
         continue
     
     drop_rows = []
@@ -383,7 +385,7 @@ for sub_ceid, amct in amct_dic.items():
                     'LA24','entity','open','close_comment','Inv','LA6','LA12']   
     df_post = mes_table[need_columns].drop(index=drop_rows)
 
-    sub_ceid_list = list(df_post['ceid'].unique())
+    sub_ceid_list = df_post['ceid'].unique()
     print(sub_ceid,'  ',sub_ceid_list,'  ', len(df_post))
     for sc in sub_ceid_list:
         df_sc = df_post[df_post['ceid']==sc]
@@ -392,19 +394,20 @@ for sub_ceid, amct in amct_dic.items():
         try:
             df_sc.to_csv(outputdir+sc+'_rev4.csv', index=False)
         except PermissionError as err:
-            print(err)
+            print_error(err)
     
     
-    if not all(tables_size) or mes_size == 0:
-        txt = sub_ceid + (': mes; ' if mes_size == 0 else ': ')
+    if not all(tables_size):# or mes_size == 0:
+        txt = sub_ceid + ': ' #(': mes; ' if mes_size == 0 else ': ')
         for proc, nested_dic in tables.items(): 
             for table, data in nested_dic.items(): 
                 if len(data) == 0:
                     txt = txt + proc + ' ' + table + '; ' 
-        with open('checkSum.txt', 'a') as myfile: 
-            myfile.write(txt + str(dt.now()) + '\n') 
+        print_error(txt)
+#        with open('checkSum.txt', 'a') as myfile: 
+#            myfile.write(txt + str(dt.now()) + '\n') 
 
-    print(time.time() - t)
+    timeit()
     
 df_summ.to_csv(outputdir+'final_table.csv', index=False)
 
