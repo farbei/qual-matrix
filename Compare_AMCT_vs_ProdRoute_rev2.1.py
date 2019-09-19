@@ -375,6 +375,12 @@ for sub_ceid, amct in amct_dic.items():
             if group_chambers(mes_row.entity) == 'Down':
                 closeRow(idx,comment='PairIsDown')
                 
+
+#        la_row = findAmctRow('LAYER_ALLOWED', ref=['OPERATION'])
+#        if la_row is not None and mes_row.operation in la_row.OPERATION:
+#           if mes_row.LayerAllowed != la_row.LAYER_ALLOWED:
+#                closeRow(idx,comment='LayerNotAllowed')
+                
         if 'fsui_rules' in ref_tables.keys():
             pass
                             
