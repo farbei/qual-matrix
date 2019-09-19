@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 #from datetime import datetime as dt
 from script_setting import dirs_address, amct_classes
-from helper import param_dict, wild_cards, print_error, timeit
+from helper import param_dict, wild_cards, print_error, timeit, filter_table
 #import time
 #t = time.time()
 
@@ -388,10 +388,10 @@ for sub_ceid, amct in amct_dic.items():
             drop_rows.append(idx)
         
         
-    need_columns = ['ceid','operation','oper_short_desc','product','route',
-                    'LA24','entity','open','close_comment','Inv','LA6','LA12']   
-    df_post = mes_table[need_columns].drop(index=drop_rows)
-
+#    need_columns = ['ceid','operation','oper_short_desc','product','route',
+#                    'LA24','entity','open','close_comment','Inv','LA6','LA12']   
+#    df_post = mes_table[need_columns].drop(index=drop_rows)
+    df_post = filter_table(mes_table,drop_rows)
     sub_ceid_list = df_post['ceid'].unique()
     print(sub_ceid,'  ',sub_ceid_list,'  ', len(df_post))
     for sc in sub_ceid_list:
