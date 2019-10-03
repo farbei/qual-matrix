@@ -13,6 +13,7 @@ import numpy as np
 #from datetime import datetime as dt
 from script_setting import dirs_address, amct_classes
 from helper import param_dict, wild_cards, print_error, timeit, filter_table
+#import amct_fun
 #import time
 #t = time.time()
 
@@ -32,19 +33,20 @@ workdir, outputdir = dirs_address()
 
 def restrictMoq(mes):
     if mes['main_moqr'] in ['nan','EMPTY']:
-        return ''
+        return '', ''
     
-    comment = []
-    uncomment_string = re.sub(r'%[^%]*%','',mes['main_moqr'])
+    restrict = []
+    comment = re.findall('(?<=%)[^%/]*(?=%)',mes['main_moqr'])
+    uncomment_string = re.sub(r'%[^%/]*%','',mes['main_moqr'])
     for field in uncomment_string.strip('/').split('/'):
         if mes['operation'] == field:
-            comment.append('oper_rmoq')
+            restrict.append('oper_rmoq')
         if field.endswith('*'):
             field = field.replace('*','.*').replace('?','.')
             if re.match(field,mes['route']):
-                comment.append('route_rmoq')
+                restrict.append('route_rmoq')
     
-    return ';'.join(comment)
+    return ';'.join(restrict), '/'.join(comment)
 
 
 # Restrict L8 to run after limit operations
@@ -121,33 +123,33 @@ def restrictCounter(param):
         return False
 
 
-def restrictCounter2(param):
-
-    if 'MAX_RANGE_INJECTION' in param.keys():
-        uda = ['INJECTOR','UPPERWALL']
-    else:
-        uda = re.search('(PM_UDA|RANGE_UDA|$)',str(param.keys())).group()
-        uda = param[uda] if uda else 'nan'
-    
-    for counter, value in map(mesUDA2,uda):    
-        if value == 'nan':
-            continue
-        if 'RANGES' in param.keys():
-            for ranges in param['RANGES'].split(','):
-                min_range, _, max_range  = ranges.partition('-')
-                if float(min_range) < float(value) < float(max_range):
-                    return False 
-            return True
-        else:
-            min_uda = re.search('MIN_[PM|UDA|RANGE]',str(param.keys()))
-            lower_limit = param[min_uda] if min_uda else '0'
-            max_uda = re.findall('MAX_[PM|UDA|RANGE][^\']*',str(param.keys()))
-            for x, y in zip(max_uda, value.values()):
-                upper_limit = '9999' if param[x] == 'nan' else param[x]
-                if not float(lower_limit) < float(y) < float(upper_limit):
-                    return True
-            return False
-    
+#def restrictCounter2(param):
+#
+#    if 'MAX_RANGE_INJECTION' in param.keys():
+#        uda = ['INJECTOR','UPPERWALL']
+#    else:
+#        uda = re.search('(PM_UDA|RANGE_UDA|$)',str(param.keys())).group()
+#        uda = param[uda] if uda else 'nan'
+#    
+#    for counter, value in map(mesUDA2,uda):    
+#        if value == 'nan':
+#            continue
+#        if 'RANGES' in param.keys():
+#            for ranges in param['RANGES'].split(','):
+#                min_range, _, max_range  = ranges.partition('-')
+#                if float(min_range) < float(value) < float(max_range):
+#                    return False 
+#            return True
+#        else:
+#            min_uda = re.search('MIN_[PM|UDA|RANGE]',str(param.keys()))
+#            lower_limit = param[min_uda] if min_uda else '0'
+#            max_uda = re.findall('MAX_[PM|UDA|RANGE][^\']*',str(param.keys()))
+#            for x, y in zip(max_uda, value.values()):
+#                upper_limit = '9999' if param[x] == 'nan' else param[x]
+#                if not float(lower_limit) < float(y) < float(upper_limit):
+#                    return True
+#            return False
+#    
 
 def closeRow(i,comment,state='Close',dic={'Close':'Open','Down':'Up'}):
     if state in dic.keys():
@@ -214,22 +216,13 @@ def loadAMCTtables(models_list):
             table = re.search('('+tables_name+')[^\.]*|$', fname).group()
             if table in tables_name:
                 data = pd.read_csv(fname) 
-                data = data.drop(columns=data.columns[data.isnull().all()])
+                data.dropna(axis=1, how='all', inplace=True)
                 data = data.astype('str').apply(wild_cards)
                 if 'PARAMETER_LIST' in data.columns:
                     data['PARAMS'] = data['PARAMETER_LIST'].apply(param_dict)
                 tables_size.append(len(data))
                 tables[process][table] = data
     return tables, tables_size
-   
-
-#def dict_param(df):
-#    if 'PARAMETER_LIST' in df.columns:
-#        df['PARAMS'] = df['PARAMETER_LIST'].apply(parameterList)
-
-
-#def param_list(param):
-#    return dict(tuple(p.split('=',1)) for p in param.split(';') if '=' in p)
 
 
 def loadSubCeidLegend():
@@ -238,23 +231,17 @@ def loadSubCeidLegend():
     return data['module'].unique(), data
 
 
-# In Case the 'Layer Allowed' attribute reflect to sub CEID
-def fixSubCeid(data): 
-    df = data.loc[data['module']==sub_ceid]
-    new_ceid = df.loc[mes_row[df['by']].values==df['value'],'new_ceid']
-    return new_ceid.values[0] if not new_ceid.empty else mes_row['ceid']   
+def fix_ceid(row, data): 
+    mask = (data['module']==sub_ceid) & (row[data['by']].values==data['value'])
+    new_ceid = data.loc[mask,'new_ceid']
+    return row['ceid'] if new_ceid.empty else new_ceid.values[0]
         
 
 def isAshersDTP(df,ash):
     if ash == None or mes_row['entity'].endswith(('7','8')):
         return False
-    
     ashers = [mes_row['entity'][:-1]+x for x in ash.split(',')]
-    mask = ( (df['operation'] == mes_row['operation'])
-           & (df['product'] == mes_row['product']) 
-           & (df['route'] == mes_row['route']) 
-           & (df['entity'].isin(ashers)) )
-    return mes_table.loc[mask & (df['open'] == 'Up&Open') ].empty
+    return not any((df['entity'].isin(ashers)) & (df['open'] == 'Up&Open'))
 
 
 def tool_allowed(tf_row):
@@ -265,14 +252,16 @@ def tool_allowed(tf_row):
 
 
 def group_chambers(entity):
-    for _, row in ref_tables['CHAMBER_GROUPS'].iterrows():
-        param = row['PARAMS'] #parameterList(row['PARAMETER_LIST'])
-        if re.match(row['ENTITY'], entity):
-            for pair in param['GROUPS'].split(','):
-                if entity[-1] in pair:                    
-                   paired = entity[:-1]+pair.strip(entity[-1])
-                   pair_rows = mes_table.loc[mes_table['entity']==paired]
-                   return pair_rows['sub_availability'].tolist()[0]
+    if mesUDA('L78GENERICUDA11') == 'Multi':
+        for _, row in ref_tables['CHAMBER_GROUPS'].iterrows():
+            param = row['PARAMS'] #parameterList(row['PARAMETER_LIST'])
+            if re.match(row['ENTITY'], entity):
+                for pair in param['GROUPS'].split(','):
+                    if entity[-1] in pair:                    
+                       paired = entity[:-1]+pair.strip(entity[-1])
+                       pair_up = any((mes_table['entity']==paired) 
+                                      & (mes_table['sub_availability']=='Up'))
+                       return 'Up' if pair_up else 'Down'
     return 'NoPair'           
         
   
@@ -299,44 +288,45 @@ def summarizeOperState(df,df_summ):
 os.chdir(workdir)   
 amct_dic = amct2moduleDic()
 ceid_needed_fix, ceid_legend = loadSubCeidLegend()
-df_summ = pd.DataFrame({'new' : []})
+df_summ = pd.DataFrame()
 
 for sub_ceid, amct in amct_dic.items():
 
-    tables, tables_size = loadAMCTtables(amct)
     mes_table, mes_size = loadMEStable(sub_ceid)
-    
     if mes_size == 0:
         print_error(sub_ceid + ': mes_table Missing!')
         continue
-    
-    drop_rows = []
-    for idx, mes_row in mes_table.iterrows():
-        if not mes_row['processed'] and mes_row['product'] == 'nan':
-            drop_rows.append(idx)
-            continue
-        
-        if sub_ceid in ceid_needed_fix:
-            mes_table.at[idx,'ceid'] = fixSubCeid(ceid_legend)  
-        elif mes_row['ceid'] != mes_row['f28_ceid']:
-            mes_table.at[idx,'ceid'] = mes_row['f28_ceid']
 
-        restricted = restrictMoq(mes_row) 
+    tables, tables_size = loadAMCTtables(amct)     
+    
+    if sub_ceid in ceid_needed_fix:
+        mes_table['ceid'] = mes_table.apply(fix_ceid, axis=1, 
+                                                 args=(ceid_legend,))  
+    
+#    droping_rows = mes_table.loc[(mes_table['processed']==0) &
+#                              (mes_table['product'] == 'nan')].index
+#    mes_table = mes_table[ mes_table['processed']>0 ]                         
+    
+    drop_rows = []                          
+    for idx, mes_row in mes_table.iterrows():
+
+        restricted, comment = restrictMoq(mes_row) 
         if restricted:
-            closeRow(idx,comment=restricted)
-                    
+            comment = restricted+'='+comment if comment else restricted
+            closeRow(idx,comment=comment)
+                   
         if mes_row['main_availability'] == 'Down':
             closeRow(idx,comment='MainDTP',state='Down')
         if mes_row['sub_availability'] == 'Down':
             closeRow(idx,comment='ChamberDTP',state='Down')
-                        
-        ref_tables = tables[mes_row['oper_process'][:4]]
+        
+        ref_tables = tables[mes_row['oper_process']]
         # TOOL FILTER Table in AMCT
-        tf_row = findAmctRow('TOOL_FILTER')
+        tf_row = findAmctRow('TOOL_FILTER') 
         tf_allowed, tf_comment = tool_allowed(tf_row)
         if not tf_allowed:
             closeRow(idx,comment=tf_comment)
-                
+             
         f3_row = findAmctRow('F3_SETUP')
         if f3_row is None:
             drop_rows.append(idx)
@@ -349,7 +339,7 @@ for sub_ceid, amct in amct_dic.items():
             closeRow(idx,comment='NoAshers',state='NoAsh')  
         if restrictCounter(f3_row['PARAMS']):
             closeRow(idx,comment='PmCounter')
-
+        
         lg_row = findAmctRow('VAR_LAYERGROUP') # VAR_LAYERGROUP
         if lg_row is not None and layerClosed(lg_row['PARAMS']):
             closeRow(idx,comment='LayerGroup')
@@ -369,7 +359,7 @@ for sub_ceid, amct in amct_dic.items():
                 closeRow(idx,comment='NeedCond')   
             if maxCascade(co_row['PARAMS']):
                 closeRow(idx,comment='MaxCascade')
-        
+    
         if 'CHAMBER_GROUPS' in ref_tables.keys():
             if group_chambers(mes_row.entity) == 'Down':
                 closeRow(idx,comment='PairIsDown')
@@ -384,9 +374,10 @@ for sub_ceid, amct in amct_dic.items():
         if 'fsui_rules' in ref_tables.keys():
             pass
                             
-        if not mes_row['processed'] and mes_table['open'][idx] != 'Up&Open':
-            drop_rows.append(idx)
-        
+#        if not mes_row['processed'] and mes_table['open'][idx] != 'Up&Open':
+#            drop_rows.append(idx)
+            
+
         
 #    need_columns = ['ceid','operation','oper_short_desc','product','route',
 #                    'LA24','entity','open','close_comment','Inv','LA6','LA12']   
