@@ -264,11 +264,11 @@ def group_chambers(entity):
                        return 'Up' if pair_up else 'Down'
     return 'NoPair'           
         
+
 def mes_state(row):
     comm = [x+'DTP;' for x in ['main','sub'] if row[x+'_availability']=='Down']
-
-    mes_table['open'] = 'Down&Open' if comm else 'Up&Open'
-    mes_table['close_comment'] = ''.join(comm)
+    row['open'] = 'Down&Open' if comm else 'Up&Open'
+    row['close_comment'] = ''.join(comm)
 
     
 def summarizeOperState(df,df_summ):
@@ -302,18 +302,14 @@ for sub_ceid, amct in amct_dic.items():
     if mes_size == 0:
         print_error(sub_ceid + ': mes_table Missing!')
         continue
-
-    tables, tables_size = loadAMCTtables(amct)     
     
     if sub_ceid in ceid_needed_fix:
         mes_table['ceid'] = mes_table.apply(fix_ceid, axis=1, 
                                                  args=(ceid_legend,))  
-    
+        
     mes_table.apply(mes_state, axis=1)
-#    droping_rows = mes_table.loc[(mes_table['processed']==0) &
-#                              (mes_table['product'] == 'nan')].index
-#    mes_table = mes_table[ mes_table['processed']>0 ]                         
-    
+                       
+    tables, tables_size = loadAMCTtables(amct) 
     drop_rows = []                          
     for idx, mes_row in mes_table.iterrows():
 
