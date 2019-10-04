@@ -264,7 +264,13 @@ def group_chambers(entity):
                        return 'Up' if pair_up else 'Down'
     return 'NoPair'           
         
-  
+def mes_state(row):
+    comm = [x+'DTP;' for x in ['main','sub'] if row[x+'_availability']=='Down']
+
+    mes_table['open'] = 'Down&Open' if comm else 'Up&Open'
+    mes_table['close_comment'] = ''.join(comm)
+
+    
 def summarizeOperState(df,df_summ):
     if not all(df['entity'].str.endswith(('7','8'))):
         df = df[df['entity'].str.endswith(('7','8'))==False]
@@ -303,6 +309,7 @@ for sub_ceid, amct in amct_dic.items():
         mes_table['ceid'] = mes_table.apply(fix_ceid, axis=1, 
                                                  args=(ceid_legend,))  
     
+    mes_table.apply(mes_state, axis=1)
 #    droping_rows = mes_table.loc[(mes_table['processed']==0) &
 #                              (mes_table['product'] == 'nan')].index
 #    mes_table = mes_table[ mes_table['processed']>0 ]                         
@@ -315,10 +322,10 @@ for sub_ceid, amct in amct_dic.items():
             comment = restricted+'='+comment if comment else restricted
             closeRow(idx,comment=comment)
                    
-        if mes_row['main_availability'] == 'Down':
-            closeRow(idx,comment='MainDTP',state='Down')
-        if mes_row['sub_availability'] == 'Down':
-            closeRow(idx,comment='ChamberDTP',state='Down')
+#        if mes_row['main_availability'] == 'Down':
+#            closeRow(idx,comment='MainDTP',state='Down')
+#        if mes_row['sub_availability'] == 'Down':
+#            closeRow(idx,comment='ChamberDTP',state='Down')
         
         ref_tables = tables[mes_row['oper_process']]
         # TOOL FILTER Table in AMCT
